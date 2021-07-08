@@ -52,6 +52,7 @@ extern YYSTYPE yylval;
 extern int VMS_read_raw;   /*sigh*/
 #else	/* VMS */
 #include "y.tab.h"
+extern YYSTYPE yylval;
 #endif /* VMS */
 
 jmp_buf wakeup;

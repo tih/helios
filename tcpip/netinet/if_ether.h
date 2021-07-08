@@ -20,9 +20,11 @@
 #define __if_ether_h
 
 #include <sys/types.h>
+#ifndef __HELIOS
 #include <net/if_arp.h>
 #include <net/if.h>
 #include <netinet/in.h>
+#endif
 
 struct	ether_header
   {

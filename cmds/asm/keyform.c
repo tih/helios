@@ -338,7 +338,7 @@ WORD value;
         k->type = type;
         k->value = value;
 
-#if !defined(SWAPKEYTABLE) && !defined(__DOS386)
+#ifdef SWAPKEYTABLE
 	{
 	int to = 3;
 	char *p = name;

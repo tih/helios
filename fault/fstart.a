@@ -74,7 +74,9 @@ Resident
 		stub	strcpy
 		stub	strcmp
 		stub	IOdebug
-		stub	__rt_sdiv10
+		_if _defp 'helios.arm [
+			stub	__rt_sdiv10
+		]
 	]
 ]
 

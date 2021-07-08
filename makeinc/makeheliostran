@@ -3,7 +3,7 @@
 setenv HPROC TRAN
 setenv HHOST HELIOSTRAN
 
-set hsrc=/helios.src
+set hsrc=/helios/src
 setenv HSRC  $hsrc
 
 setenv HPROD /helios
@@ -12,9 +12,9 @@ setenv HHOSTBIN /helios/bin
 
 setenv HLICENSEE PERIHELION
 
-  test -d TRAN
-  if ($status == 0) then
-	cd TRAN; make $*
-  else
-  	make $*
-  endif
+test -d TRAN
+if ($status == 0) then
+	cd TRAN; gmake $*
+else
+	gmake $*
+endif

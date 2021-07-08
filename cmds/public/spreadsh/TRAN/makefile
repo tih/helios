@@ -75,3 +75,9 @@ XSOURCES.odd	= makefile
 #-----------------------------------------------------------------------------
 # Any additional processor specific rules and generic rule overides go here:
 
+y.tab.c y.tab.h : gram.y
+	bison -y -d $<
+	mv y_tab.c y.tab.c
+	mv y_tab.h y.tab.h
+
+lex.o : y.tab.h

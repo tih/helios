@@ -32,8 +32,10 @@
 
 #include "../net/if.h"
 #include "in.h"
+#ifndef __HELIOS
 #include "in_systm.h"
 #include "netinet/ip.h"
+#endif
 #include "if_ether.h"
 
 #ifdef GATEWAY

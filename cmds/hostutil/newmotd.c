@@ -98,11 +98,11 @@ int main()
   fprintf(stdout,lbuff) ;
   fputc(0x0D,stdout), fputc(0x0A,stdout) ;
   
-  sprintf( lbuff, "Build date: %s %s %s 19%d",
+  sprintf( lbuff, "Build date: %s %s %s %d",
 	  days[    ltime->tm_wday ],
 	  months[  ltime->tm_mon ],
 	  do_date( ltime->tm_mday ),
-	  ltime->tm_year ) ;
+	  ltime->tm_year + 1900) ;
   
   for (nspaces = ((80 - strlen(lbuff)) / 2); (nspaces > 0); nspaces--)
     fputc(0x20,stdout) ;

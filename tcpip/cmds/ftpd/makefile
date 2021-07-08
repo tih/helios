@@ -132,7 +132,10 @@ else
     ifndef SYSDEB
       NCFLAGS := $(NCFLAGS) -ps1
     endif
-    NCFLAGS := $(NCFLAGS) -wasdfv -ecpz -i/hsrc/network/
+    NCFLAGS := $(NCFLAGS) -wasdfv -ecpz
+    ifneq ($(HHOST),HELIOSTRAN)
+      NCFLAGS := $(NCFLAGS) -i/hsrc/network/
+    endif
   endif
 endif
 

@@ -153,16 +153,19 @@ include $(HSRC)/makeinc/$(HHOST).mak	# Default host system variables
 	clean hostclean binclean realclean ultraclean quickclean nucclean \
 	HostStartM HostEndM HostC HostIOS HostAmpp HostLink HostAsm \
 	HostMisc hostutil HostUtil \
- 	LibHdrs MkDefs Linklibs \
+	LibHdrs MkDefs Linklibs \
 	nuc2 nuc Servers Nucleus Network romsys \
 	Fault Kernel Util Posix Clib Fplib \
 	PatchLib Abclib \
 	Scanlibs Bsd Termcap Curses MsWin \
 	Asm Shell Com Link Ampp Emacs Make GMake Tar Cdl \
-	Debugger Tcpip Demos Hfs Help Fortran Bcpl Public Gnu \
+	Debugger Tcpip Hfs Help Fortran Bcpl Public Gnu \
 	srctar gettar tsttar tarbakall makeltree \
 	rcsunfreeze rcsfreeze rcslevel rcsclean rcscheck rcsreport
 
+# tih: temporarily removed Demos from the build
+# this is from the above block, other changes follow below
+#	Debugger Tcpip Demos Hfs Help Fortran Bcpl Public Gnu \
 
 #-----------------------------------------------------------------------------
 # Define what part of Helios to build for different licensee's
@@ -217,20 +220,20 @@ else
  COMMANDS := 	$(COMMANDS) cmds/linker cmds/assembler
 endif
 
-DEMOS :=	demos demos/hello demos/tut
-
-ifndef HSINGLEPROC
-DEMOS :=	$(DEMOS) demos/factor demos/lb \
-		demos/pi demos/pi/pi_farm demos/pi/pi_fast demos/pi/pi_fort \
-		demos/pi/pi_ring demos/servers demos/servers/keyboard \
-		demos/rmlib demos/rmlib/mappipe demos/rmlib/buildrm \
-		demos/rmlib/owners
-
- ifeq ($(HPROC), TRAN)
- DEMOS :=	$(DEMOS) demos/pi/pi_mix demos/pi/pi_mod2 \
-		demos/pi/pi_pasc
- endif
-endif
+# DEMOS :=	demos demos/hello demos/tut
+# 
+# ifndef HSINGLEPROC
+# DEMOS :=	$(DEMOS) demos/factor demos/lb \
+# 		demos/pi demos/pi/pi_farm demos/pi/pi_fast demos/pi/pi_fort \
+# 		demos/pi/pi_ring demos/servers demos/servers/keyboard \
+# 		demos/rmlib demos/rmlib/mappipe demos/rmlib/buildrm \
+# 		demos/rmlib/owners
+# 
+#  ifeq ($(HPROC), TRAN)
+#  DEMOS :=	$(DEMOS) demos/pi/pi_mix demos/pi/pi_mod2 \
+# 		demos/pi/pi_pasc
+#  endif
+# endif
 
 PUBLIC :=	cmds/public cmds/public/spreadsh cmds/public/clock \
 		cmds/public/cookie cmds/public/yacc-1.4
@@ -246,8 +249,9 @@ HOSTUTIL :=	cmds/hostutil
 # std source license:
 
 STDHELIOS :=	$(NUCLEUS) $(LIBRARIES) $(NETWORK) $(NETPKGS) $(SCANLIBS) \
-		$(SERVERS) $(MSWIN) $(COMMANDS) $(DEMOS) $(PUBLIC) $(GNU) \
-		$(HOSTUTIL)
+		$(SERVERS) $(MSWIN) $(COMMANDS) $(PUBLIC) $(GNU) $(HOSTUTIL)
+#		$(SERVERS) $(MSWIN) $(COMMANDS) $(DEMOS) $(PUBLIC) $(GNU) \
+#		$(HOSTUTIL)
 
 
 # cut down nucleus only license (but includes fault+posix)
@@ -651,7 +655,8 @@ ifdef NUC_LIC
 endif
 
 ifdef SRC_LIC
- MAINTARGETS := LibHdrs Nucleus Libraries Network MsWin Commands Demos Gnu Public
+ MAINTARGETS := LibHdrs Nucleus Libraries Network MsWin Commands Gnu Public
+# MAINTARGETS := LibHdrs Nucleus Libraries Network MsWin Commands Demos Gnu Public
  ifeq ($(HLICENSEE), ABC)
   MAINTARGETS := $(MAINTARGETS) romsys
  endif
@@ -731,7 +736,7 @@ endif
 	@ test -d  $(HPROD)/local/tcpip/example ||	mkdir $(HPROD)/local/tcpip/example
 	@ test -d  $(HPROD)/local/tcpip/pc-ether ||	mkdir $(HPROD)/local/tcpip/pc-ether
 ifeq ($(HHOST),HELIOSTRAN)
-     	@ test -d  $(HPROD)/include ||	mkdir $(HPROD)/include
+	@ test -d  $(HPROD)/include ||	mkdir $(HPROD)/include
 	-cp -r $(HSRC)/include/* $(HPROD)/include
 else
 ifeq ($(HHOST),HELIOSC40)
@@ -1259,9 +1264,9 @@ Testsuite:
 #-----------------------------------------------------------------------------
 # Demos and Tutorials
 
-Demos:
-	@echo "				[[[ Making Demos ]]]"
-	$(MAKE) -C demos/$(HPROC) install
+# Demos:
+# 	@echo "				[[[ Making Demos ]]]"
+# 	$(MAKE) -C demos/$(HPROC) install
 
 
 #-----------------------------------------------------------------------------
@@ -1631,7 +1636,8 @@ ifndef RSRC
 else
 	@echo "Creating local Helios source tree"
 	cp -r $(RSRC)/makeinc .
-	mkdir cmds cmds/cc cmds/public cmds/gnu scanlibs servers demos tcpip
+	mkdir cmds cmds/cc cmds/public cmds/gnu scanlibs servers tcpip
+#	mkdir cmds cmds/cc cmds/public cmds/gnu scanlibs servers demos tcpip
 				 # make stub subdirs
 	- $(foreach COMPDIR, $(CLIST), $(MKANDCP))
 endif

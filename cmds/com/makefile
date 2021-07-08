@@ -119,11 +119,12 @@ RSRCS = ascii.c atob.c basename.c bsplit.c btoa.c cal.c cmp.c cat.c \
 	date.c df.c dirname.c dump.c false.c \
 	gdi.c mem.c cache.c mkdir.c touch.c clear.c chmod.c refine.c \
 	tee.c test.c true.c od.c sleep.c map.c objed.c ln.c \
-	waitfor.c which.c sysbuild.c sysbreak.c whichend.c lb.c
+	waitfor.c which.c whichend.c lb.c
 
 # Now commands which need compiling specially in some way
 # *Warning* Also update $(SBINS) manually when you update $(SSRCS)
-SSRCS := compress.c cp.c du.c find.c ls.c mv.c loadpac.c rm.c rmdir.c c.c
+SSRCS := compress.c cp.c du.c find.c ls.c mv.c loadpac.c rm.c rmdir.c \
+	c.c sysbuild.c sysbreak.c
 
 ifeq ($(HPROC),C40)
 RSRCS := $(RSRCS) idrom.c
@@ -153,7 +154,8 @@ default: $(TARGETS) Xdefault
 
 #transform to lists of binaries
 RBINS = $(ROBJS:.o=)
-SBINS := loadpac ls cp mv find du rm rmdir c compress compress.14 tcp
+SBINS := loadpac ls cp mv find du rm rmdir c compress compress.14 tcp \
+	sysbuild sysbreak
 ifeq ($(HPROC),ARM)
 SBINS := $(SBINS) toshell
 endif
@@ -249,6 +251,22 @@ cat : $(CSTART) cat.o
 # could probably reduce the heap and stack further
 toshell:  $(CSTART) toshell.o
 	$(LINK) $(LINKFLAGS) -o$@ -n$@ -s2000 -h1000 $^
+
+# sysbuild and sysbreak need {get,push,pop,free}args
+sysbuild:  $(CSTART) sysbuild.o getargs.o
+	$(LINK) $(LINKFLAGS) -o$@ -n$@ -s2000 -h4000 $^
+
+sysbreak:  $(CSTART) sysbreak.o getargs.o
+	$(LINK) $(LINKFLAGS) -o$@ -n$@ -s2000 -h4000 $^
+
+sysbuild.o : sysbuild.c
+	$(HOSTCC) $(HOSTCFLAGS) -I../../support -c -o$@ $<
+
+sysbreak.o : sysbreak.c
+	$(HOSTCC) $(HOSTCFLAGS) -I../../support -c -o$@ $<
+
+getargs.o : ../../support/getargs.c
+	$(HOSTCC) $(HOSTCFLAGS) -I../../support -c -o$@ ../../support/getargs.c
 
 # other processor versions have to setup a special set of defines
 ifeq ($(HPROC),TRAN)

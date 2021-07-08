@@ -99,7 +99,7 @@ SOURCES.c	= asm.c gencode.c genimage.c gencsc.c growcode.c \
 
 OBJECTS		= asm.o gencode.o genimage.o growdata.o growcode.o keytab.o \
 		objed.o lex.o encode.o mem.o module.o preasm.o sym.o syn.o \
-		vm.o
+		vm.o getargs.o
 
 # AMPP source files
 SOURCES.a	= 
@@ -152,6 +152,9 @@ keytab.c : keyform
 
 keyform : keyform.c
 	$(HOSTCC) $< $(HOSTCFLAGS) -o keyform
+
+getargs.o : ../../support/getargs.c
+	$(HOSTCC) $(HOSTCFLAGS) -c -ogetargs.o ../../support/getargs.c
 
 asm:  $(OBJECTS)
 	$(ASM) -v -f -s20000 -h4000 -nasm -mvmfile $(CSTART) $(OBJECTS) -oasm

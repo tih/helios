@@ -88,17 +88,17 @@ SOURCES		= $(SOURCES.c) $(SOURCES.a) \
 		  $(HEADERS.c) $(HEADERS.m) \
 		  $(SOURCES.odd)
 
-OBJECTS	= $(SOURCES.c:.c=.o) $(SOURCES.a:.a=.o)
+OBJECTS	= $(SOURCES.c:.c=.o) $(SOURCES.a:.a=.o) y.tab.o
 
 # C source files
-SOURCES.c	=  lex.c sc.c y.tab.c interp.c crypt.c xmalloc.c cmds.c \
+SOURCES.c	=  lex.c sc.c interp.c crypt.c xmalloc.c cmds.c \
                    range.c help.c 
 
 # AMPP source files
 SOURCES.a	= 
 
 # C header files
-HEADERS.c	= sc.h y.tab.h experres.h statres.h
+HEADERS.c	= sc.h experres.h statres.h
 
 # AMPP macro files
 HEADERS.m	=

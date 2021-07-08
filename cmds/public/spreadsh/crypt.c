@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <curses.h>
 #include <strings.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <signal.h>
