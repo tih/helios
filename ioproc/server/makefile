@@ -23,7 +23,7 @@ ifndef InProcMake
 # your make script or environment, if not then get local defaults from
 # $(HSRC)/makeinc/DFLT.mak. Note that the following pathname cannot use $(HSRC).
 #ifndef HPROC
-#nclude ../makeinc/DFLT.mak
+#include ../makeinc/DFLT.mak
 #endif
 
 .PHONY: notarget
@@ -226,7 +226,7 @@ HYDRAOBJ   = hydra.o
 # hydra monitor
 
 HYDRAMON   = hydramon.o
-	
+
 
 #-----------------------------------------------------------------------------
 # Other generic component variables:

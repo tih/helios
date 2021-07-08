@@ -1327,7 +1327,7 @@ Conode *myco;
      return;
    }
 
-#if (!SUN)
+#if !(SUN || MINIX)
   ServerDebug("link from %s to %s",local_name,linkname);
   Request_Return(ReplyOK, 0L, 0L);
 

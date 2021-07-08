@@ -1111,7 +1111,7 @@ PUBLIC void  fn(  memory_map,        (void));       /* a debugging facility */
 
 #else
 
-#if !(SOLARIS || SUN3 || SUN4)
+#if !(SOLARIS || SUN3 || SUN4 || MINIX)
 
 /* free/malloc declared in <stdlib.h> */
 

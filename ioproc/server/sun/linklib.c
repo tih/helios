@@ -526,6 +526,20 @@ extern WORD fn( vy86pid_rdrdy,			(void));
 extern WORD fn( vy86pid_wrrdy,			(void));
 #endif
 
+#if (MINIX)
+extern void fn( minix_init_link,		(void));
+extern int  fn( minix_open_link,		(int));
+extern void fn( minix_free_link,		(int));
+extern void fn( minix_reset_processor,		(void));
+extern void fn( minix_analyse_processor,	(void));
+extern WORD fn( minix_byte_from_link,		(UBYTE *));
+extern WORD fn( minix_byte_to_link,		(int));
+extern WORD fn( minix_send_block,		(int, BYTE *, int));
+extern WORD fn( minix_fetch_block,		(int, BYTE *, int));
+extern WORD fn( minix_rdrdy,			(void));
+extern WORD fn( minix_wrrdy,			(void));
+#endif
+
 /**
 *** The purpose of resetlnk() is as follows. If the link I/O has already
 *** been initialised, do nothing. Otherwise find out what hardware is
@@ -925,6 +939,23 @@ void resetlnk()
   }
 #endif /* !SOLARIS */
 
+#endif
+
+#if MINIX
+  elif (!mystrcmp (conf, "MINIX"))
+  {
+     minix_init_link ();
+     open_link_fn	= inin_fn_(minix_open_link);
+     free_link_fn	= vdin_fn_(minix_free_link);
+     reset_fn		= vdvd_fn_(minix_reset_processor);
+     analyse_fn		= vdvd_fn_(minix_analyse_processor);
+     byte_from_link_fn	= wdub_fn_(minix_byte_from_link);
+     byte_to_link_fn	= wdin_fn_(minix_byte_to_link);
+     send_block_fn	= wdinp_fn_(minix_send_block);
+     fetch_block_fn	= wdinp_fn_(minix_fetch_block);
+     rdrdy_fn		= wdvd_fn_(minix_rdrdy);
+     wrrdy_fn		= wdvd_fn_(minix_wrrdy);
+  }
 #endif
 
 /**
@@ -1714,7 +1745,11 @@ PRIVATE void fn( hydra_inet_init_link, (int));
 extern "C"
 {
 #endif
+#if (MINIX)
+int fn (gethostname, (char *, size_t));
+#else
 int fn (gethostname, (char *, int));
+#endif
 #ifdef __cplusplus
 }
 #endif
@@ -1728,7 +1763,7 @@ PRIVATE void hydra_init_link()
   WORD retries = get_int_config("connection_retries");
   if (retries eq Invalid_config) retries = 5L;
 
-#if (SM90 || TR5 || i486V4 || HP9000 || SOLARIS)
+#if (SM90 || TR5 || i486V4 || HP9000 || SOLARIS || MINIX)
   if (gethostname(con.hostname,sizeof(con.hostname)) eq -1)
 #else
   if (gethostname(con.hostname) eq -1)
@@ -1742,7 +1777,11 @@ PRIVATE void hydra_init_link()
      longjmp_exit;
    }
 
+#if (MINIX)
+  if (getlogin_r(con.userid, sizeof con.userid) ne 0)
+#else
   if (cuserid(con.userid) eq NULL)
+#endif
    { ServerDebug("Unable to obtain user name : %q");
      if (errno <= sys_nerr)
       ServerDebug("%s", sys_errlist[errno]);

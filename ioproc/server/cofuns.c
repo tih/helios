@@ -27,7 +27,7 @@
 #include "helios.h"
 
 #if !PC
-#if SOLARIS
+#if (SOLARIS || MINIX)
 #include <stdarg.h>
 #else
 #include <varargs.h>
@@ -38,7 +38,7 @@
 /**
 *** The low level coroutine library, written in assembler language
 **/
-#if SOLARIS
+#if (SOLARIS || MINIX)
 
 PUBLIC int fn (InitCo,	   (void));
 PUBLIC ptr fn (CreateCo,   (void * (*)(void *), int));
@@ -81,7 +81,7 @@ Conode *current_conode;
 #if (MAC || (PC && !MSWINDOWS))
 #define default_stacksize 2000L
 #endif
-#if (SOLARIS)
+#if SOLARIS
 #define default_stack_size	0	/* Works it out for itself */
 #endif
 
@@ -141,7 +141,7 @@ PRIVATE Conode    *new_conode;
 
 #if ANSI_prototypes
 
-#if SOLARIS
+#if (SOLARIS || MINIX)
 PRIVATE void * new_coroutine(void * not_used)
 #else
 PRIVATE void new_coroutine(void)
@@ -157,7 +157,7 @@ PRIVATE void new_coroutine()
 
   (*my_function)(my_conode);
 
-#if SOLARIS
+#if (SOLARIS || MINIX)
   not_used = NULL;
 
   return (void *)NULL;

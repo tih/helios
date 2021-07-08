@@ -1019,6 +1019,7 @@ typedef struct Config {
 /*
  * Additional options, not kept in so_options.
  */
+#if !(MINIX)
 #define SO_SNDBUF	0x1001		/* send buffer size */
 #define SO_RCVBUF	0x1002		/* receive buffer size */
 #define SO_SNDLOWAT	0x1003		/* send low-water mark */
@@ -1027,6 +1028,7 @@ typedef struct Config {
 #define SO_RCVTIMEO	0x1006		/* receive timeout */
 #define	SO_ERROR	0x1007		/* get error status and clear */
 #define	SO_TYPE		0x1008		/* get socket type */
+#endif
 
 /* Extra options for Helios */
 #define	SO_HOSTID	0x8001		/* Host Id (system level)	*/

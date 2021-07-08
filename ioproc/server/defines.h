@@ -22,6 +22,14 @@
 *** ST, PC, AMIGA, SUN, TRIPOS, VAX, OS2, OS9, XENIX (your own additions)
 **/
 
+#ifdef MINIX
+#undef MINIX
+#define MINIX 1
+#define UNIX 1
+#else
+#define MINIX 0
+#endif
+
 #ifdef ST
 #undef ST
 #define ST 1
@@ -577,7 +585,7 @@
 #define multi_tasking                1
 #endif
 
-#if (RS6000 || HP9000 || SOLARIS || __GNU__ > 0)
+#if (RS6000 || HP9000 || SOLARIS || MINIX || __GNU__ > 0)
 #define ANSI_prototypes              1
 #else
 #define ANSI_prototypes              0

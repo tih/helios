@@ -1175,7 +1175,7 @@ PRIVATE void TidyUp()
   iofree(SelectCo);
 
 #if multi_tasking
-#if SOLARIS
+#if (SOLARIS || MINIX)
   /* Last 0 argument is a dummy value to kepp the C++ compiler happy */
   ClearMultiwait(Multi_LinkMessage, current_link, 0);
 #else

@@ -26,7 +26,7 @@
 #include "helios.h"
 
 #if !PC
-#if SOLARIS
+#if (SOLARIS || MINIX)
 #include <stdarg.h>
 #else
 #include <varargs.h>
@@ -153,7 +153,7 @@ void restart_windowing()
 #if multi_tasking
 
 #if multiple_windows
-#if SOLARIS
+#if (SOLARIS || MINIX)
   /* last 0 argument a dummyvalue to keep the C++ compiler happy */
   AddMultiwait(Multi_WindowInput, &(Server_window.any_data),
 	       Server_window.handle, 0);
@@ -162,7 +162,11 @@ void restart_windowing()
 	       Server_window.handle);
 #endif
 #else
+#if (SOLARIS || MINIX)
+  AddMultiwait(Multi_WindowInput, &(Server_window.any_data), 0, 0);
+#else
   AddMultiwait(Multi_WindowInput, &(Server_window.any_data));
+#endif
 #endif
 
 #endif
@@ -690,7 +694,7 @@ char *window_name;
 #endif
 
 #if multi_tasking
-#if SOLARIS
+#if (SOLARIS || MINIX)
   /* last 0 argument a dummyvalue to keep the C++ compiler happy */
   AddMultiwait(Multi_WindowInput, &(window->any_data), window->handle, 0); 
 #else
@@ -704,7 +708,7 @@ void delete_window(window)
 Window *window;
 {
 #if multi_tasking
-#if SOLARIS
+#if (SOLARIS || MINIX)
   /* last 0 argument a dummyvalue to keep the C++ compiler happy */
   ClearMultiwait(Multi_WindowInput, window->handle, 0);
 #else
@@ -3575,6 +3579,7 @@ word handle;
       }
    }
 
+#if multiple_windows
   if (!real_windows)
    {
 #if SOLARIS
@@ -3592,6 +3597,7 @@ word handle;
 #endif
    }
   else
+#endif
    redraw_buf[0] = '\0';
 
 #if SOLARIS

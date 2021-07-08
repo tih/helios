@@ -26,8 +26,8 @@
 #include "helios.h"
 
 #include <stdlib.h>
-#include <sys\types.h>
-#include <sys\stat.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 /*{{{  description */
 /**
@@ -327,7 +327,7 @@ int mode;
    FreeList(Image_List);
 
 #if multi_tasking
-#if SOLARIS
+#if (SOLARIS || MINIX)
     /* last 0 in call is a dummy value to keep the C++ compiler happy */
     AddMultiwait(Multi_LinkMessage, &link_table[current_link].ready,
                  current_link, 0);

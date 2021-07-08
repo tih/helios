@@ -148,6 +148,7 @@ int fn (InternetDoRecvMessage, (Conode *));
 /*                                                                      */
 /************************************************************************/
 
+#if !MINIX
 #ifdef __cplusplus
 extern "C"
 {
@@ -155,6 +156,7 @@ extern "C"
 int fn (gethostname, (char *, int));
 #ifdef __cplusplus
 }
+#endif
 #endif
 
 void Internet_InitServer(myco)
@@ -821,9 +823,7 @@ isroot:
 		if( addr ) 
 		{
 			setsu(TRUE);
-#if (TR5 || i486V4)
 			addr->sin_family = swap_short(addr->sin_family);
-#endif
 
 			/* ServerDebug ("InternetDoBind () - attempting bind () on <%d, %d, <%d>, %s>", 
 				addr->sin_family, addr->sin_port, 
@@ -1732,8 +1732,10 @@ Conode *myco;
 	msg.msg_name = (caddr_t)&addr;
 	msg.msg_iov = &iov;
 	msg.msg_iovlen = 1;
+#if !MINIX
 	msg.msg_accrights = NULL;	/* ignore accrights for now */
 	msg.msg_accrightslen = 0;
+#endif
                                  /* I might have to poll later */
         AddTail(Remove(&(myco->node)), PollingCo);
         myco->timelimit = timeout + Now;
@@ -1893,12 +1895,14 @@ struct msghdr *msg;
 	msg->msg_iov->iov_len = dg->DataSize;
 	msg->msg_iovlen = 1;
 	
+#if !MINIX
 	if( dg->AccRights != -1 )
 	{
 		msg->msg_accrights = (caddr_t)(data+dg->AccRights+4);
 		msg->msg_accrightslen = swap(*(word *)(data+dg->AccRights));
 	}
 	else msg->msg_accrights = NULL, msg->msg_accrightslen = 0;
+#endif
 }
 
 /************************************************************************/
@@ -1983,7 +1987,7 @@ SockEntry *d;
 	int result;
 	if(d->selfn & O_ReadOnly)
 	{
-#if SOLARIS
+#if (SOLARIS || MINIX)
 		/* The last 0 argument is a dummy value to keep the C++ compiler happy */
 		ClearMultiwait(Multi_SocketInput, d->fd, 0);
 #else
@@ -1992,7 +1996,7 @@ SockEntry *d;
 	}
 	if(d->selfn & O_WriteOnly)
 	{
-#if SOLARIS
+#if (SOLARIS || MINIX)
 		/* The last 0 argument is a dummy value to keep the C++ compiler happy */
 		ClearMultiwait(Multi_SocketOutput,d->fd, 0);
 #else
@@ -2001,7 +2005,7 @@ SockEntry *d;
 	}
 	if(d->selfn & O_Exception)
 	{
-#if SOLARIS
+#if (SOLARIS || MINIX)
 		/* The last 0 argument is a dummy value to keep the C++ compiler happy */
 		ClearMultiwait(Multi_SocketExcp,  d->fd, 0);
 #else

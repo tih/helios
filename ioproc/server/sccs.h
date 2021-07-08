@@ -125,4 +125,6 @@ static char SccsId2[] = "RS6000";
 static char SccsId2[] = "HP9000";
 #endif
 
-
+#if MINIX
+static char SccsId2[] = "MINIX";
+#endif

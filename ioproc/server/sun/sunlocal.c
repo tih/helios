@@ -400,7 +400,9 @@ void unix_initialise_devices()
    }
 #endif
 
+#if multiple_windows
   real_windows = 0;
+#endif
   initialise_dumb_terminal();
   close_window_fn = (VoidWordFnPtr)func(dumb_close_window);
   window_size_fn  = (VoidWordargFnPtr)func(dumb_window_size);
@@ -604,12 +606,16 @@ PRIVATE void initialise_keyboard_strings()
 *** of the stuff below.
 **/
 
-#if (SUN3 || SUN4 || SUN386 || TR5 || i486V4 || HP9000)
+#if (SUN3 || SUN4 || SUN386 || TR5 || i486V4 || HP9000 || MINIX)
                      /* The various suns support the termios system */
                      /* but other unix machines may not. Those have */
                      /* to make do with the sgtty junk              */
   { struct termios t;
+#if (MINIX)
+    if (tcgetattr(0, &t) eq 0)
+#else
     if (ioctl(0, TCGETS, &t) eq 0)
+#endif
      { key_definition *key;
        key = &(key_table[keyindex_max++]);
        key->local_sequence[0] = t.c_cc[VERASE];
@@ -1063,7 +1069,7 @@ char *name;
 *** has been moved to dumb_send_to_window.
 **/
 
-#if (SUN3 || SUN4 || SUN386 || TR5 || i486V4 || HP9000 || SCOUNIX)
+#if (SUN3 || SUN4 || SUN386 || TR5 || i486V4 || HP9000 || SCOUNIX || MINIX)
 PRIVATE struct termios old_term, cur_term;
 #else
 PRIVATE struct sgttyb old_term, cur_term;
@@ -1102,17 +1108,26 @@ PRIVATE void initialise_dumb_terminal()
    }
 */
 
-#if (SUN3 || SUN4 || SUN386 || TR5 || i486V4 || HP9000 || SCOUNIX)
+#if (SUN3 || SUN4 || SUN386 || TR5 || i486V4 || HP9000 || SCOUNIX || MINIX)
 
+#if (MINIX)
+  tcgetattr(0, &old_term);
+  tcgetattr(0, &cur_term);
+#else
   ioctl(0, TCGETS, &old_term);
   ioctl(0, TCGETS, &cur_term);
+#endif
   cur_term.c_iflag &= ~(IXON + IXOFF);
   cur_term.c_iflag |= (IGNBRK | IGNPAR | INLCR); 
   cur_term.c_lflag &= ~(ISIG + ICANON + ECHO + ECHOE + ECHOK + 
                         ECHONL);
   cur_term.c_cc[VMIN]  = 0;
   cur_term.c_cc[VTIME] = 0;
+#if (MINIX)
+  tcsetattr(0, TCSANOW, &cur_term);
+#else
   ioctl(0, TCSETS, &cur_term);
+#endif
 
 #else
                             /* set mode RAW ,ctrl \ gets out */
@@ -1140,8 +1155,12 @@ PRIVATE void initialise_dumb_terminal()
 PRIVATE void restore_dumb_terminal()
 {
   if (terminal_changed)
-#if (SUN3 || SUN4 || SUN386 || TR5 || i486V4 || HP9000 || SCOUNIX)
-   ioctl(0, TCSETSW, &old_term); 
+#if (SUN3 || SUN4 || SUN386 || TR5 || i486V4 || HP9000 || SCOUNIX || MINIX)
+#if (MINIX)
+    tcsetattr(0, TCSADRAIN, &old_term);
+#else
+   ioctl(0, TCSETSW, &old_term);
+#endif
 #else
    ioctl(0, TIOCSETP, &old_term);
 /*@@@*/
@@ -2439,7 +2458,7 @@ WORD get_drive_info(name, reply)
 char *name;
 servinfo *reply;
 { 
-#if (SM90 || TR5 || i486V4)                   /* statfs not supported */
+#if (SM90 || TR5 || i486V4 || MINIX) /* statfs not supported */
   reply->size  = 0L;
   reply->used  = 0L;
   reply->alloc = 512;

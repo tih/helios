@@ -37,7 +37,7 @@ static  void pipe_broken();
 #undef CLK_TCK
 #endif
 
-#if !(i486V4 || SUN4 || SUN3 || RS6000 || HP9000)
+#if !(i486V4 || SUN4 || SUN3 || RS6000 || HP9000 || MINIX)
 #ifndef __clock_t
 #define __clock_t 1
 typedef long clock_t;
@@ -51,8 +51,10 @@ typedef long clock_t;
 #define SEEK_SET	0
 #endif
 
+#if !(MINIX)
 extern char *sys_errlist[];
 extern int  sys_nerr;
+#endif
 
 /**
 *** These define the interface between the I/O Server and the
