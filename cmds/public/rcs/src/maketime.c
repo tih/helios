@@ -74,7 +74,7 @@ int daytb[] = {   /* # days in year thus far, indexed by month (0-12!!) */
 };
 
 struct tm *localtime();
-long	time();
+time_t	time();
 
 long maketime(atm)
 struct tm *atm;

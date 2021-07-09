@@ -380,6 +380,8 @@ a.out
 /cmds/public/cookie/TRAN/cookie
 /cmds/public/ed/C40/ed
 /cmds/public/ed/TRAN/ed
+/cmds/public/rcs/src/rcsdiff
+/cmds/public/rcs/src/rcsmerge
 /cmds/public/sed/C40/sed
 /cmds/public/sed/TRAN/sed
 /cmds/public/spreadsh/ARM/sc

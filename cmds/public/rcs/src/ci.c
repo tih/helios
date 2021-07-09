@@ -160,7 +160,7 @@ extern char * buildrevision();         /*constructs desired revision        */
 extern char * checkid();               /*check identifiers                  */
 extern int    partime();               /*parse free-format date/time        */
 extern long   maketime();              /*convert parsed time to unix time.  */
-extern long   time();                  /*get date and time                  */
+extern time_t time();                  /*get date and time                  */
 extern struct tm * localtime();        /*convert unixtime into tm-structure */
 extern char * getdate();               /*formates current date  (forward)   */
 extern char * mktempfile();            /*temporary file name generator      */
