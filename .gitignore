@@ -741,6 +741,12 @@ a.out
 /tcpip/laserp/TRAN/laserpri
 /tcpip/net/TRAN/net
 /tcpip/netinet/TRAN/proto
+/tcpip/nfs/TRAN/mount.h
+/tcpip/nfs/TRAN/mount_clnt.c
+/tcpip/nfs/TRAN/mount_xdr.c
+/tcpip/nfs/TRAN/nfs_prot.h
+/tcpip/nfs/TRAN/nfs_prot_clnt.c
+/tcpip/nfs/TRAN/nfs_prot_xdr.c
 /tcpip/nfs/TRAN/hmount
 /tcpip/nfs/TRAN/nfsx
 /tcpip/sys/TRAN/sockets
