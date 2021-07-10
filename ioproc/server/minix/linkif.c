@@ -60,7 +60,7 @@ void minix_analyse_processor() {
 
 WORD minix_byte_from_link(UBYTE *data) {
 
-  /* timeout often defaults to a fifth of a second */
+  /* timeout defaults to a fifth of a second */
   if (current_timeout != 2) {
     current_timeout = 2;
     ioctl(link_fd, B004SETTIMEOUT, &current_timeout);
@@ -74,7 +74,7 @@ WORD minix_byte_from_link(UBYTE *data) {
 
 WORD minix_byte_to_link(int data) {
 
-  /* timeout often defaults to two seconds */
+  /* timeout defaults to two seconds */
   if (current_timeout != 20) {
     current_timeout = 20;
     ioctl(link_fd, B004SETTIMEOUT, &current_timeout);
@@ -87,51 +87,33 @@ WORD minix_byte_to_link(int data) {
 }
 
 WORD minix_send_block(int count, BYTE *data, int timeout) {
-  int sent, ret;
-  BYTE *ptr;
+  int ret;
 
-  /* timeout often defaults to five seconds */
+  /* timeout defaults to five seconds */
   timeout = 50;
   if (timeout != current_timeout) {
     ioctl(link_fd, B004SETTIMEOUT, &timeout);
     current_timeout = timeout;
   }
 
-  sent = 0;
-  ptr = data;
-  while (sent < count) {
-    ret = write(link_fd, ptr, MIN((count - sent), 4000));
-    if (ret <= 0)
-      break;
-    sent += ret;
-    ptr += ret;
-  }
-  
-  return (count - sent);
+  ret = write(link_fd, ptr, count);
+
+  return (count - ret);
 }
 
 WORD minix_fetch_block(int count, BYTE *data, int timeout) {
-  int fetched, ret;
-  BYTE *ptr;
+  int ret;
   
-  /* timeout often defaults to five seconds */
+  /* timeout defaults to five seconds */
   timeout = 50;
   if (timeout != current_timeout) {
     ioctl(link_fd, B004SETTIMEOUT, &timeout);
     current_timeout = timeout;
   }
 
-  fetched = 0;
-  ptr = data;
-  while (fetched < count) {
-    ret = read(link_fd, ptr, MIN((count - fetched), 4000));
-    if (ret <= 0)
-      break;
-    fetched += ret;
-    ptr += ret;
-  }
+  ret = read(link_fd, ptr, count);
 
-  return (count - fetched);
+  return (count - ret);
 }
 
 WORD minix_rdrdy() {
