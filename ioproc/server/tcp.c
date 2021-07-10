@@ -416,10 +416,6 @@ Conode *myco;
 
 	if(addr)
 	{
-		if (addr->sin_family == 0)
-			addr->sin_family = AF_INET;
-		else
-			addr->sin_family = swap_short(addr->sin_family);
 #if TCPDEBUG
 		ServerDebug("Connect %d %x %x %x", sizeof(struct sockaddr_in),
 		(short)(addr->sin_family), (ushort)addr->sin_port,
@@ -654,11 +650,6 @@ Conode *myco;
 						/* now reply to the client */
 	l->len = swap(addrlen);
 
-	if (addr.sin_family == 0)
-		addr.sin_family = AF_INET;
-	else
-		addr.sin_family = swap_short(addr.sin_family);
-
 #if SOLARIS
 	memcpy (&l->dat, &addr, addrlen);
 #else
@@ -732,10 +723,7 @@ Conode *myco;
 		}
 
 		addr = (struct sockaddr_in *)&mcb->Data[bindreq->Addr+4];
-		if (addr->sin_family == 0)
-			addr->sin_family = AF_INET;
-		else
-			addr->sin_family = swap_short(addr->sin_family);
+
 #if TCPDEBUG
 		ServerDebug("InternetDoBind () - Bind %x %x %x %x", addr->sin_family,addr->sin_port,
 			addr->sin_addr.s_addr, addr->sin_zero);
@@ -833,10 +821,6 @@ isroot:
 		if( addr ) 
 		{
 			setsu(TRUE);
-			if (addr->sin_family == 0)
-				addr->sin_family = AF_INET;
-			else
-				addr->sin_family = swap_short(addr->sin_family);
 #if TCPDEBUG
 			ServerDebug ("InternetDoBind () - attempting bind () on <%d, %d, <%d>, %s>", 
 				addr->sin_family, addr->sin_port, 
@@ -1892,11 +1876,6 @@ struct msghdr *msg;
 	if( dg->DestAddr != -1 )
 	{
 	   msg->msg_name = (caddr_t)(data+dg->DestAddr+4);
-	   if (((struct sockaddr_in *) (msg->msg_name))->sin_family == 0)
-	     ((struct sockaddr_in *) (msg->msg_name))->sin_family = AF_INET;
-	   else
-	     ((struct sockaddr_in *) (msg->msg_name))->sin_family =
-                swap_short(((struct sockaddr_in *) (msg->msg_name))->sin_family);
 	   msg->msg_namelen = swap(*(word *)(data+dg->DestAddr));
 	}
 	else msg->msg_name = NULL, msg->msg_namelen = 0;
