@@ -98,6 +98,9 @@ WORD minix_send_block(int count, BYTE *data, int timeout) {
 
   ret = write(link_fd, data, count);
 
+  if (ret < 0)
+    return count;
+
   return (count - ret);
 }
 
@@ -112,6 +115,9 @@ WORD minix_fetch_block(int count, BYTE *data, int timeout) {
   }
 
   ret = read(link_fd, data, count);
+
+  if (ret < 0)
+    return count;
 
   return (count - ret);
 }
