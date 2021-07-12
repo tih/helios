@@ -417,9 +417,15 @@ Conode *myco;
 	if(addr)
 	{
 #if TCPDEBUG
-		ServerDebug("Connect %d %x %x %x", sizeof(struct sockaddr_in),
-		(short)(addr->sin_family), (ushort)addr->sin_port,
-		addr->sin_addr.s_addr);
+		ServerDebug("InternetDoConnect: len %d; fam %d; port %d; addr %x",
+			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
+#endif
+#if MINIX
+		if (addr->sin_len == 0 && addr->sin_family == 0)
+			addr->sin_family = AF_INET;
+		else if (addr->sin_family == 0)
+			addr->sin_family = addr->sin_len;
+		addr->sin_len = 16;
 #endif
 	}
 	
@@ -650,6 +656,14 @@ Conode *myco;
 						/* now reply to the client */
 	l->len = swap(addrlen);
 
+#if TCPDEBUG
+	ServerDebug("InternetDoAccept: len %d; fam %d; port %d; addr %x",
+		addr.sin_len, addr.sin_family, ntohs(addr.sin_port), ntohl(addr.sin_addr.s_addr));
+#endif
+#if MINIX
+	addr.sin_len = 0;
+	addr.sin_port = ntohs(addr.sin_port);
+#endif
 #if SOLARIS
 	memcpy (&l->dat, &addr, addrlen);
 #else
@@ -723,12 +737,17 @@ Conode *myco;
 		}
 
 		addr = (struct sockaddr_in *)&mcb->Data[bindreq->Addr+4];
-
 #if TCPDEBUG
-		ServerDebug("InternetDoBind () - Bind %x %x %x %x", addr->sin_family,addr->sin_port,
-			addr->sin_addr.s_addr, addr->sin_zero);
+		ServerDebug("InternetDoBind: len %d; fam %d; port %d; addr %x",
+			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
 #endif
-
+#if MINIX
+		if (addr->sin_len == 0 && addr->sin_family == 0)
+			addr->sin_family = AF_INET;
+		else if (addr->sin_family == 0)
+			addr->sin_family = addr->sin_len;
+		addr->sin_len = 16;
+#endif
 		setsu(TRUE);
 	        e = bind(d->fd, (sockaddr *)addr, sizeof(struct sockaddr_in));
 		setsu(FALSE);
@@ -822,9 +841,15 @@ isroot:
 		{
 			setsu(TRUE);
 #if TCPDEBUG
-			ServerDebug ("InternetDoBind () - attempting bind () on <%d, %d, <%d>, %s>", 
-				addr->sin_family, addr->sin_port, 
-				(addr->sin_addr).s_addr, addr->sin_zero);
+			ServerDebug("InternetDoBind: len %d; fam %d; port %d; addr %x",
+				    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
+#endif
+#if MINIX
+			if (addr->sin_len == 0 && addr->sin_family == 0)
+				addr->sin_family = AF_INET;
+			else if (addr->sin_family == 0)
+				addr->sin_family = addr->sin_len;
+			addr->sin_len = 16;
 #endif
 			e = bind(d->fd, (sockaddr *)addr,sizeof(struct sockaddr_in));
 			setsu(FALSE);
@@ -1589,6 +1614,7 @@ Conode *myco;
 	Port replyport = mcb->MsgHdr.Reply;
 	word e;
 	SockEntry *d;
+	struct sockaddr_in *addr;
 
 	/* ServerDebug ("InternetDoSendMessage (%s)", myco->name); */
 
@@ -1639,6 +1665,24 @@ Conode *myco;
 	dgtomsg(mcb,&msg);
 
 	dg = (DataGram *)mcb->Control;
+
+	if( msg.msg_name )
+		addr = (struct sockaddr_in *)msg.msg_name;
+
+	if(addr)
+	{
+#if TCPDEBUG
+		ServerDebug("InternetDoSendMessage: len %d; fam %d; port %d; addr %x",
+			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
+#endif
+#if MINIX
+		if (addr->sin_len == 0 && addr->sin_family == 0)
+			addr->sin_family = AF_INET;
+		else if (addr->sin_family == 0)
+			addr->sin_family = addr->sin_len;
+		addr->sin_len = 16;
+#endif
+	}
 
 #ifdef USE_sendto
 	e = sendto (d->fd, (msg.msg_iov)->iov_base, (msg.msg_iov)->iov_len, 
@@ -1833,7 +1877,14 @@ retry:
 	}
 	*(WORD *)&mcb->Data[mcb->MsgHdr.DataSize]
 			= swap(sizeof(struct sockaddr_in));
-
+#if TCPDEBUG
+	ServerDebug("InternetDoRecvMessage: len %d; fam %d; port %d; addr %x",
+		    addr.sin_len, addr.sin_family, ntohs(addr.sin_port), ntohl(addr.sin_addr.s_addr));
+#endif
+#if MINIX
+	addr.sin_len = 0;
+	addr.sin_port = ntohs(addr.sin_port);
+#endif
 #if SOLARIS
 	memcpy (&mcb->Data[mcb->MsgHdr.DataSize+4], &addr, sizeof (struct sockaddr_in));
 #else
