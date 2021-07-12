@@ -506,6 +506,7 @@ a.out
 /demos/rmlib/owners/TRAN/owners
 /demos/servers/keyboard/TRAN/keyboard
 /fault/TRAN/codes.h
+/fault/TRAN/faults
 /fault/TRAN/errno.h
 /fault/TRAN/signal.h
 /filesys/cmds/TRAN/access
