@@ -60,6 +60,11 @@
 typedef struct sockaddr		sockaddr;
 #endif
 
+#if MINIX
+#define USE_sendto 1
+#define USE_recvfrom 1
+#endif
+
 #define	TCPDEBUG	0
 
 typedef struct SockEntry
@@ -242,7 +247,7 @@ Conode *myco;
 	          mcb->Control[open_reply-1] = offset;
 	          *((WORD *) mcb) = (hdr & ~0xFFFF) + offset;
     
-#if SOLARIS
+#if (SOLARIS || MINIX)
 		  memcpy (&mcb->Data[mcb->MsgHdr.DataSize], myco -> extra, swap (*(myco->extra)));
 #else
 	          bcopy(myco -> extra, &mcb->Data[mcb->MsgHdr.DataSize],
@@ -416,6 +421,9 @@ Conode *myco;
 
 	if(addr)
 	{
+#if !MINIX
+		addr->sin_family = swap_short(addr->sin_family);
+#endif
 #if TCPDEBUG
 		ServerDebug("InternetDoConnect: len %d; fam %d; port %d; addr %x",
 			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
@@ -425,7 +433,11 @@ Conode *myco;
 			addr->sin_family = AF_INET;
 		else if (addr->sin_family == 0)
 			addr->sin_family = addr->sin_len;
-		addr->sin_len = 16;
+		addr->sin_len = sizeof(struct sockaddr_in);
+#if TCPDEBUG
+		ServerDebug("                   len %d; fam %d; port %d; addr %x",
+			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
+#endif
 #endif
 	}
 	
@@ -456,7 +468,7 @@ Conode *myco;
 		   return TRUE;
 		   }
 
-#if SOLARIS
+#if (SOLARIS || MINIX)
 		memcpy (buf, mcb->Control, csize * 4);
 		memcpy (&buf[csize*4], mcb->Data, dsize);
 #else
@@ -470,7 +482,7 @@ Conode *myco;
 		mcb->MsgHdr.Reply = reply;
 		mcb->MsgHdr.Dest = dest;
 
-#if SOLARIS
+#if (SOLARIS || MINIX)
 		memcpy (mcb->Control, buf, csize * 4);
 		memcpy (mcb->Data, &buf[csize*4], dsize);
 #else
@@ -632,6 +644,9 @@ Conode *myco;
 		}
 	   else
 	       {
+#if TCPDEBUG
+	       ServerDebug("InternetDoAccept: error %d", errno); /* XXX */
+#endif
 	       convert_errno();
 	       Request_Return(EC_Error|EG_Errno|SS_InterNet|errno, 0L, 0L);
 	       }
@@ -655,16 +670,22 @@ Conode *myco;
 	ioctl(e, FIONBIO, &setval);		/* set non-blocking */
 						/* now reply to the client */
 	l->len = swap(addrlen);
-
+#if !MINIX
+	addr.sin_family = swap_short(addr.sin_family);
+#endif
 #if TCPDEBUG
 	ServerDebug("InternetDoAccept: len %d; fam %d; port %d; addr %x",
 		addr.sin_len, addr.sin_family, ntohs(addr.sin_port), ntohl(addr.sin_addr.s_addr));
 #endif
 #if MINIX
-	addr.sin_len = 0;
-	addr.sin_port = ntohs(addr.sin_port);
+	addr.sin_len = addr.sin_family;
+	addr.sin_family = 0;
+#if TCPDEBUG
+	ServerDebug("                  len %d; fam %d; port %d; addr %x",
+		addr.sin_len, addr.sin_family, ntohs(addr.sin_port), ntohl(addr.sin_addr.s_addr));
 #endif
-#if SOLARIS
+#endif
+#if (SOLARIS || MINIX)
 	memcpy (&l->dat, &addr, addrlen);
 #else
 	bcopy(&addr, &l->dat, addrlen);
@@ -746,7 +767,11 @@ Conode *myco;
 			addr->sin_family = AF_INET;
 		else if (addr->sin_family == 0)
 			addr->sin_family = addr->sin_len;
-		addr->sin_len = 16;
+		addr->sin_len = sizeof(struct sockaddr_in);
+#if TCPDEBUG
+		ServerDebug("                len %d; fam %d; port %d; addr %x",
+			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
+#endif
 #endif
 		setsu(TRUE);
 	        e = bind(d->fd, (sockaddr *)addr, sizeof(struct sockaddr_in));
@@ -840,6 +865,9 @@ isroot:
 		if( addr ) 
 		{
 			setsu(TRUE);
+#if !MINIX
+			addr->sin_family = swap_short(addr->sin_family);
+#endif
 #if TCPDEBUG
 			ServerDebug("InternetDoBind: len %d; fam %d; port %d; addr %x",
 				    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
@@ -849,7 +877,11 @@ isroot:
 				addr->sin_family = AF_INET;
 			else if (addr->sin_family == 0)
 				addr->sin_family = addr->sin_len;
-			addr->sin_len = 16;
+			addr->sin_len = sizeof(struct sockaddr_in);
+#if TCPDEBUG
+			ServerDebug("                len %d; fam %d; port %d; addr %x",
+				    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
+#endif
 #endif
 			e = bind(d->fd, (sockaddr *)addr,sizeof(struct sockaddr_in));
 			setsu(FALSE);
@@ -1150,10 +1182,22 @@ Conode *myco;
 		{
 		case SO_PEERNAME:
 			e = getpeername(d->fd,(sockaddr *)val,&valsize);
+#if MINIX
+			if (!e) {
+				((sockaddr *)val)->sa_len = ((sockaddr *)val)->sa_family;
+				((sockaddr *)val)->sa_family = 0;
+			}
+#endif
 			goto done;
 			
 		case SO_SOCKNAME:
 			e = getsockname(d->fd,(sockaddr *)val,&valsize);
+#if MINIX
+			if (!e) {
+				((sockaddr *)val)->sa_len = ((sockaddr *)val)->sa_family;
+				((sockaddr *)val)->sa_family = 0;
+			}
+#endif
 			goto done;
 		}
 	}
@@ -1351,7 +1395,7 @@ try_again:
 	      return ;
 	      }
 	  
-#if SOLARIS
+#if (SOLARIS || MINIX)
 	   memcpy (buf1, buf, idata);
 	   memcpy (&buf1[idata], mcb->Data, size - idata);
 #else
@@ -1680,7 +1724,11 @@ Conode *myco;
 			addr->sin_family = AF_INET;
 		else if (addr->sin_family == 0)
 			addr->sin_family = addr->sin_len;
-		addr->sin_len = 16;
+		addr->sin_len = sizeof(struct sockaddr_in);
+#if TCPDEBUG
+		ServerDebug("                       len %d; fam %d; port %d; addr %x",
+			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
+#endif
 #endif
 	}
 
@@ -1882,10 +1930,14 @@ retry:
 		    addr.sin_len, addr.sin_family, ntohs(addr.sin_port), ntohl(addr.sin_addr.s_addr));
 #endif
 #if MINIX
-	addr.sin_len = 0;
-	addr.sin_port = ntohs(addr.sin_port);
+	addr.sin_len = addr.sin_family;
+	addr.sin_family = 0;
+#if TCPDEBUG
+	ServerDebug("                       len %d; fam %d; port %d; addr %x",
+		    addr.sin_len, addr.sin_family, ntohs(addr.sin_port), ntohl(addr.sin_addr.s_addr));
 #endif
-#if SOLARIS
+#endif
+#if (SOLARIS || MINIX)
 	memcpy (&mcb->Data[mcb->MsgHdr.DataSize+4], &addr, sizeof (struct sockaddr_in));
 #else
 	bcopy(&addr, &mcb->Data[mcb->MsgHdr.DataSize+4],
@@ -1927,6 +1979,10 @@ struct msghdr *msg;
 	if( dg->DestAddr != -1 )
 	{
 	   msg->msg_name = (caddr_t)(data+dg->DestAddr+4);
+#if !MINIX
+	   ((struct sockaddr_in *) (msg->msg_name))->sin_family =
+	      swap_short(((struct sockaddr_in *) (msg->msg_name))->sin_family);
+#endif
 	   msg->msg_namelen = swap(*(word *)(data+dg->DestAddr));
 	}
 	else msg->msg_name = NULL, msg->msg_namelen = 0;

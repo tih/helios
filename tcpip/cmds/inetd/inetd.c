@@ -509,8 +509,15 @@ setsockopt(fd, SOL_SOCKET, opt, (char *)&on, sizeof (on))
 		}
 		return;
 	}
-	if (sep->se_socktype == SOCK_STREAM)
-		listen(sep->se_fd, 10);
+	if (sep->se_socktype == SOCK_STREAM) {
+		if (listen(sep->se_fd, 10) < 0) {
+			syslog(LOG_ERR, "%s/%s: listen: %m",
+			       sep->se_service, sep->se_proto);
+			(void) close(sep->se_fd);
+			sep->se_fd = -1;
+			return;
+		}
+	}
 	FD_SET(sep->se_fd, &allsock);
 	nsock++;
 	if (sep->se_fd > maxsock)

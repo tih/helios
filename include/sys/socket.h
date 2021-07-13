@@ -113,8 +113,7 @@ struct	linger {
  * addresses.
  */
 struct sockaddr {
-	u_char	sa_len;
-	u_char	sa_family;
+	u_short	sa_family;
 	char	sa_data[14];		/* up to 14 bytes of direct address */
 };
 
