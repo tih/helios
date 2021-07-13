@@ -82,6 +82,7 @@ a.out
 /cmds/asm/SUN4/objdump
 /cmds/asm/TRAN/asm
 /cmds/asm/TRAN/keyform
+/cmds/asm/TRAN/keytab.c
 /cmds/asm/TRAN/objdump
 /cmds/assembler/ARM/lex_ARM.o.ok
 /cmds/assembler/C40/as
