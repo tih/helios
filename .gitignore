@@ -522,7 +522,6 @@ a.out
 /filesys/devs/b422/gensquirt
 /filesys/devs/b422/makefile
 /filesys/fs/TRAN/fs
-/filesys/msdos/makedisk.exe
 /filesys/ufs/C40/ufs
 /filesys/ufs/TRAN/ufs
 /filesys/ufs/cmds/C40/disklabel
