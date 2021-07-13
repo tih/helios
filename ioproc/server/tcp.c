@@ -58,11 +58,13 @@
 
 #if !SOLARIS
 typedef struct sockaddr		sockaddr;
+#define USE_memcpy 1
 #endif
 
 #if MINIX
 #define USE_sendto 1
 #define USE_recvfrom 1
+#define USE_memcpy 1
 #endif
 
 #define	TCPDEBUG	0
@@ -173,7 +175,11 @@ Conode *myco;
   Internet_extra.entries = 0L;
   gethostname(MyName, NameMax);		/* get unix host name */
   h = gethostbyname(MyName);		/* and local name */
-  memcpy (&MyAddr, h->h_addr_list[0], h->h_length);
+#ifdef USE_memcpy
+  memcpy(&MyAddr, h->h_addr_list[0], h->h_length);
+#else
+  bcopy(h->h_addr_list[0], &MyAddr, h->h_length);
+#endif
 }
 
 /************************************************************************/
@@ -247,11 +253,10 @@ Conode *myco;
 	          mcb->Control[open_reply-1] = offset;
 	          *((WORD *) mcb) = (hdr & ~0xFFFF) + offset;
     
-#if (SOLARIS || MINIX)
-		  memcpy (&mcb->Data[mcb->MsgHdr.DataSize], myco -> extra, swap (*(myco->extra)));
+#ifdef USE_memcpy
+		  memcpy(&mcb->Data[mcb->MsgHdr.DataSize], myco->extra, swap (*(myco->extra)));
 #else
-	          bcopy(myco -> extra, &mcb->Data[mcb->MsgHdr.DataSize],
-			        swap(*(myco->extra)));
+	          bcopy(myco->extra, &mcb->Data[mcb->MsgHdr.DataSize], swap(*(myco->extra)));
 #endif
     
 	          Request_Return(ReplyOK, open_reply,
@@ -421,9 +426,7 @@ Conode *myco;
 
 	if(addr)
 	{
-#if !MINIX
 		addr->sin_family = swap_short(addr->sin_family);
-#endif
 #if TCPDEBUG
 		ServerDebug("InternetDoConnect: len %d; fam %d; port %d; addr %x",
 			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
@@ -434,10 +437,6 @@ Conode *myco;
 		else if (addr->sin_family == 0)
 			addr->sin_family = addr->sin_len;
 		addr->sin_len = sizeof(struct sockaddr_in);
-#if TCPDEBUG
-		ServerDebug("                   len %d; fam %d; port %d; addr %x",
-			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
-#endif
 #endif
 	}
 	
@@ -468,9 +467,9 @@ Conode *myco;
 		   return TRUE;
 		   }
 
-#if (SOLARIS || MINIX)
-		memcpy (buf, mcb->Control, csize * 4);
-		memcpy (&buf[csize*4], mcb->Data, dsize);
+#ifdef USE_memcpy
+		memcpy(buf, mcb->Control, csize * 4);
+		memcpy(&buf[csize*4], mcb->Data, dsize);
 #else
 		bcopy(mcb->Control, buf, csize * 4);
 		bcopy(mcb->Data, &buf[csize*4], dsize);
@@ -482,9 +481,9 @@ Conode *myco;
 		mcb->MsgHdr.Reply = reply;
 		mcb->MsgHdr.Dest = dest;
 
-#if (SOLARIS || MINIX)
-		memcpy (mcb->Control, buf, csize * 4);
-		memcpy (mcb->Data, &buf[csize*4], dsize);
+#ifdef USE_memcpy
+		memcpy(mcb->Control, buf, csize * 4);
+		memcpy(mcb->Data, &buf[csize*4], dsize);
 #else
 		bcopy(buf, mcb->Control, csize * 4);
 		bcopy(&buf[csize*4], mcb->Data, dsize);
@@ -670,9 +669,8 @@ Conode *myco;
 	ioctl(e, FIONBIO, &setval);		/* set non-blocking */
 						/* now reply to the client */
 	l->len = swap(addrlen);
-#if !MINIX
 	addr.sin_family = swap_short(addr.sin_family);
-#endif
+
 #if TCPDEBUG
 	ServerDebug("InternetDoAccept: len %d; fam %d; port %d; addr %x",
 		addr.sin_len, addr.sin_family, ntohs(addr.sin_port), ntohl(addr.sin_addr.s_addr));
@@ -680,13 +678,10 @@ Conode *myco;
 #if MINIX
 	addr.sin_len = addr.sin_family;
 	addr.sin_family = 0;
-#if TCPDEBUG
-	ServerDebug("                  len %d; fam %d; port %d; addr %x",
-		addr.sin_len, addr.sin_family, ntohs(addr.sin_port), ntohl(addr.sin_addr.s_addr));
 #endif
-#endif
-#if (SOLARIS || MINIX)
-	memcpy (&l->dat, &addr, addrlen);
+
+#ifdef USE_memcpy
+	memcpy(&l->dat, &addr, addrlen);
 #else
 	bcopy(&addr, &l->dat, addrlen);
 #endif
@@ -768,10 +763,6 @@ Conode *myco;
 		else if (addr->sin_family == 0)
 			addr->sin_family = addr->sin_len;
 		addr->sin_len = sizeof(struct sockaddr_in);
-#if TCPDEBUG
-		ServerDebug("                len %d; fam %d; port %d; addr %x",
-			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
-#endif
 #endif
 		setsu(TRUE);
 	        e = bind(d->fd, (sockaddr *)addr, sizeof(struct sockaddr_in));
@@ -865,9 +856,7 @@ isroot:
 		if( addr ) 
 		{
 			setsu(TRUE);
-#if !MINIX
 			addr->sin_family = swap_short(addr->sin_family);
-#endif
 #if TCPDEBUG
 			ServerDebug("InternetDoBind: len %d; fam %d; port %d; addr %x",
 				    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
@@ -878,10 +867,6 @@ isroot:
 			else if (addr->sin_family == 0)
 				addr->sin_family = addr->sin_len;
 			addr->sin_len = sizeof(struct sockaddr_in);
-#if TCPDEBUG
-			ServerDebug("                len %d; fam %d; port %d; addr %x",
-				    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
-#endif
 #endif
 			e = bind(d->fd, (sockaddr *)addr,sizeof(struct sockaddr_in));
 			setsu(FALSE);
@@ -1337,7 +1322,11 @@ try_again:
 	      return ;
 	   }
 
-	   memcpy(buf,mcb->Data,idata);	/* save immediate for later */
+#ifdef USE_memcpy
+	   memcpy(buf, mcb->Data, idata);	/* save immediate for later */
+#else
+	   bcopy(mcb->Data, buf, idata);
+#endif
 	}
 	
 	mcb->Control[0] = size;
@@ -1395,12 +1384,12 @@ try_again:
 	      return ;
 	      }
 	  
-#if (SOLARIS || MINIX)
-	   memcpy (buf1, buf, idata);
-	   memcpy (&buf1[idata], mcb->Data, size - idata);
+#ifdef USE_memcpy
+	   memcpy(buf1, buf, idata);
+	   memcpy(&buf1[idata], mcb->Data, size - idata);
 #else
 	   bcopy(buf, buf1, idata);
-	   bcopy(mcb->Data, &buf1[idata], size-idata);
+	   bcopy(mcb->Data, &buf1[idata], size - idata);
 #endif
 	   iofree(buf);
 	   buf = NULL;
@@ -1725,10 +1714,6 @@ Conode *myco;
 		else if (addr->sin_family == 0)
 			addr->sin_family = addr->sin_len;
 		addr->sin_len = sizeof(struct sockaddr_in);
-#if TCPDEBUG
-		ServerDebug("                       len %d; fam %d; port %d; addr %x",
-			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
-#endif
 #endif
 	}
 
@@ -1835,7 +1820,6 @@ retry:
 
 #ifdef USE_recvfrom
 	fromlen = sizeof (addr);
-
 	e = recvfrom(d->fd, buf, dg->DataSize, flags,
 			(struct sockaddr_in *)&(addr), &fromlen);
 #else
@@ -1932,16 +1916,12 @@ retry:
 #if MINIX
 	addr.sin_len = addr.sin_family;
 	addr.sin_family = 0;
-#if TCPDEBUG
-	ServerDebug("                       len %d; fam %d; port %d; addr %x",
-		    addr.sin_len, addr.sin_family, ntohs(addr.sin_port), ntohl(addr.sin_addr.s_addr));
 #endif
-#endif
-#if (SOLARIS || MINIX)
-	memcpy (&mcb->Data[mcb->MsgHdr.DataSize+4], &addr, sizeof (struct sockaddr_in));
+
+#ifdef USE_memcpy
+	memcpy(&mcb->Data[mcb->MsgHdr.DataSize+4], &addr, sizeof(struct sockaddr_in));
 #else
-	bcopy(&addr, &mcb->Data[mcb->MsgHdr.DataSize+4],
-			sizeof(struct sockaddr_in));
+	bcopy(&addr, &mcb->Data[mcb->MsgHdr.DataSize+4], sizeof(struct sockaddr_in));
 #endif
 
 	mcb->MsgHdr.DataSize += (sizeof(struct sockaddr_in) + 4);
@@ -1979,10 +1959,8 @@ struct msghdr *msg;
 	if( dg->DestAddr != -1 )
 	{
 	   msg->msg_name = (caddr_t)(data+dg->DestAddr+4);
-#if !MINIX
 	   ((struct sockaddr_in *) (msg->msg_name))->sin_family =
 	      swap_short(((struct sockaddr_in *) (msg->msg_name))->sin_family);
-#endif
 	   msg->msg_namelen = swap(*(word *)(data+dg->DestAddr));
 	}
 	else msg->msg_name = NULL, msg->msg_namelen = 0;
