@@ -427,16 +427,16 @@ Conode *myco;
 	if(addr)
 	{
 		addr->sin_family = swap_short(addr->sin_family);
-#if TCPDEBUG
-		ServerDebug("InternetDoConnect: len %d; fam %d; port %d; addr %x",
-			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
-#endif
 #if MINIX
 		if (addr->sin_len == 0 && addr->sin_family == 0)
 			addr->sin_family = AF_INET;
 		else if (addr->sin_family == 0)
 			addr->sin_family = addr->sin_len;
 		addr->sin_len = sizeof(struct sockaddr_in);
+#endif
+#if TCPDEBUG
+		ServerDebug("InternetDoConnect: len %d; fam %d; port %d; addr %x",
+			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
 #endif
 	}
 	
@@ -753,16 +753,16 @@ Conode *myco;
 		}
 
 		addr = (struct sockaddr_in *)&mcb->Data[bindreq->Addr+4];
-#if TCPDEBUG
-		ServerDebug("InternetDoBind: len %d; fam %d; port %d; addr %x",
-			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
-#endif
 #if MINIX
 		if (addr->sin_len == 0 && addr->sin_family == 0)
 			addr->sin_family = AF_INET;
 		else if (addr->sin_family == 0)
 			addr->sin_family = addr->sin_len;
 		addr->sin_len = sizeof(struct sockaddr_in);
+#endif
+#if TCPDEBUG
+		ServerDebug("InternetDoBind: len %d; fam %d; port %d; addr %x",
+			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
 #endif
 		setsu(TRUE);
 	        e = bind(d->fd, (sockaddr *)addr, sizeof(struct sockaddr_in));
@@ -855,12 +855,7 @@ isroot:
 		ioctl(d->fd, FIONBIO, &setval);		/* set non-blocking */
 		if( addr ) 
 		{
-			setsu(TRUE);
 			addr->sin_family = swap_short(addr->sin_family);
-#if TCPDEBUG
-			ServerDebug("InternetDoBind: len %d; fam %d; port %d; addr %x",
-				    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
-#endif
 #if MINIX
 			if (addr->sin_len == 0 && addr->sin_family == 0)
 				addr->sin_family = AF_INET;
@@ -868,6 +863,11 @@ isroot:
 				addr->sin_family = addr->sin_len;
 			addr->sin_len = sizeof(struct sockaddr_in);
 #endif
+#if TCPDEBUG
+			ServerDebug("InternetDoBind: len %d; fam %d; port %d; addr %x",
+				    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
+#endif
+			setsu(TRUE);
 			e = bind(d->fd, (sockaddr *)addr,sizeof(struct sockaddr_in));
 			setsu(FALSE);
 
@@ -1704,16 +1704,16 @@ Conode *myco;
 
 	if(addr)
 	{
-#if TCPDEBUG
-		ServerDebug("InternetDoSendMessage: len %d; fam %d; port %d; addr %x",
-			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
-#endif
 #if MINIX
 		if (addr->sin_len == 0 && addr->sin_family == 0)
 			addr->sin_family = AF_INET;
 		else if (addr->sin_family == 0)
 			addr->sin_family = addr->sin_len;
 		addr->sin_len = sizeof(struct sockaddr_in);
+#endif
+#if TCPDEBUG
+		ServerDebug("InternetDoSendMessage: len %d; fam %d; port %d; addr %x",
+			    addr->sin_len, addr->sin_family, ntohs(addr->sin_port), ntohl(addr->sin_addr.s_addr));
 #endif
 	}
 
