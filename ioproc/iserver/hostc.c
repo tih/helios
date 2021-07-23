@@ -31,6 +31,7 @@
 #ifdef MINIX
 #include <sys/termios.h>
 #include <stdlib.h>
+#include <unistd.h>
 #endif
 
 #ifdef VMS
@@ -473,7 +474,7 @@ PUBLIC VOID SpGetenv()
       }
    else
       {
-	 if( ( Name=(BYTE *)getenv( Name ) ) == NULL )
+	 if( ( Name=(BYTE *)getenv( (char *)Name ) ) == NULL )
 	    {
 	       PUT_BYTE( SP_ERROR );
 	    }
@@ -564,7 +565,7 @@ PUBLIC VOID SpSystem()
 #ifndef UNKNOWN_HOST
    Command = &DataBuffer[0];
    GET_SLICE( Size, Command ); *(Command+Size)=0; DEBUG(( "\"%s\"", Command ));
-   Status = system( Command );
+   Status = system( (char *)Command );
    DEBUG(( "status %ld", (long)Status ));
    PUT_BYTE( SP_SUCCESS );
    PUT_INT32( Status );

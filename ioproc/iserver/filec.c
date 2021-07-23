@@ -473,7 +473,7 @@ PUBLIC VOID SpPuts()
    GET_SLICE( Size, Data ); DEBUG(( "%d bytes", Size ));
 
    *(Data+Size)=0;
-   if ( fputs( Data, Fd ) == EOF )
+   if ( fputs( (char *)Data, Fd ) == EOF )
       {
          PUT_BYTE( SP_ERROR );
       }
@@ -726,7 +726,7 @@ PUBLIC VOID SpRemove()
    else
       {
 #if defined(SUN) || defined(MINIX)
-         if( unlink( Name ) )
+	 if( unlink( (char *)Name ) )
 #else
          if( remove( Name ) )
 #endif

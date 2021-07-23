@@ -333,7 +333,7 @@ PRIVATE VOID Core()
       {
          INFO(("ok\n"));
       }
-   DEBUG(( "peeked %ld bytes", a ));
+   DEBUG(( "peeked %ld bytes", (long)a ));
 }
 #endif
 
@@ -468,7 +468,7 @@ PRIVATE VOID ParseCommandLine ()
                      case 'P' :  ++s;
                                  while (*s == ' ')
                                     ++s;
-                                 CoreSize = (atoi(s) * 1024);
+                                 CoreSize = (atoi((char *)s) * 1024);
                                  if (CoreSize == 0)
                                     ABORT(MISC_EXIT, (SE, "expected a number after %cSP option\n", SWITCH_CHAR));
                                  while( (*s) && (*s!=SWITCH_CHAR) )
@@ -794,7 +794,7 @@ PUBLIC int main (argc, argv)
    if ( *LinkName == 0 )
       {
          if ( ( ALinkName = (BYTE *)getenv("TRANSPUTER") ) != NULL )
-	   strcpy( (char *)LinkName, ALinkName );
+	   strcpy( (char *)LinkName, (char *)ALinkName );
       }
       
    DEBUG(("and \"%s\" as the link name", LinkName));
