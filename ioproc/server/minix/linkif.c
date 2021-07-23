@@ -58,9 +58,9 @@ void minix_analyse_processor() {
 
 WORD minix_byte_from_link(UBYTE *data) {
 
-  /* timeout defaults to a fifth of a second */
-  if (current_timeout != 2) {
-    current_timeout = 2;
+  /* timeout defaults to half a second */
+  if (current_timeout != 5) {
+    current_timeout = 5;
     ioctl(link_fd, B004SETTIMEOUT, &current_timeout);
   }
 
