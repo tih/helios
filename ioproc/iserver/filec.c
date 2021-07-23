@@ -242,7 +242,7 @@ PUBLIC VOID SpRead()
    switch( (int)Fd )
       {
          case 0 : Fd = stdin;
-#ifdef SUN
+#if defined(SUN) || defined(MINIX)
                   ResetTerminal();
 #endif
                   break;
@@ -326,7 +326,7 @@ PUBLIC VOID SpGetBlock()
    switch( (int)Fd )
       {
          case 0 : Fd = stdin;
-#ifdef SUN
+#if defined(SUN) || defined(MINIX)
                   ResetTerminal();
 #endif
                   break;
@@ -409,7 +409,7 @@ PUBLIC VOID SpGets()
    switch( (int)Fd )
       {
          case 0 : Fd = stdin;
-#ifdef SUN
+#if defined(SUN) || defined(MINIX)
                   ResetTerminal();
 #endif
                   break;

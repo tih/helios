@@ -24,7 +24,7 @@
 #include "udplink.h"
 #endif
 
-#ifdef SUN
+#if defined(SUN) || defined(MINIX)
 #include <sys/termios.h>
 #endif
 
@@ -63,7 +63,7 @@ PRIVATE int Size;
 
 PRIVATE BOOL TermMode = ORG_MODE;
 
-#ifdef SUN
+#if defined(SUN) || defined(MINIX)
 PRIVATE struct termios OrgMode, CurMode;
 #endif
 
@@ -91,6 +91,9 @@ PUBLIC VOID HostEnd()
 #ifdef SUN
    ioctl(0,TCSETS,&OrgMode);
 #endif
+#ifdef MINIX
+  tcsetattr(0, TCSANOW, &OrgMode);
+#endif
 #ifdef HELIOS
    SetAttributes( InputStream, &CurAttributes );
 #endif
@@ -103,6 +106,13 @@ PUBLIC VOID ResetTerminal()
    if ( TermMode != ORG_MODE )
       {
 	 ioctl(0, TCSETS, &OrgMode);
+	 TermMode = ORG_MODE;
+      }
+#endif
+#ifdef MINIX
+   if ( TermMode != ORG_MODE )
+      {
+	 tcsetattr(0, TCSANOW, &OrgMode);
 	 TermMode = ORG_MODE;
       }
 #endif
@@ -121,6 +131,10 @@ PUBLIC VOID HostBegin()
 #ifdef SUN
    ioctl(0,TCGETS,&OrgMode);
    ioctl(0,TCGETS,&CurMode);
+#endif
+#ifdef MINIX
+   tcgetattr(0, &OrgMode);
+   tcgetattr(0, &CurMode);
 #endif
 #ifdef HELIOS
    InputStream = fdstream(0);
@@ -147,14 +161,18 @@ PUBLIC BYTE GetAKey()
 {
    BYTE c;
 
-#ifdef SUN
+#if defined(SUN) || defined(MINIX)
    if ( TermMode == ORG_MODE )
       {
 	 CurMode.c_iflag &= ~ICRNL;
 	 CurMode.c_lflag &= ~(ICANON | ECHO);
 	 CurMode.c_cc[VTIME] = 0;
 	 CurMode.c_cc[VMIN] = 1;
+#ifdef MINIX
+	 tcsetattr(0, TCSANOW, &CurMode);
+#else
 	 ioctl( 0, TCSETS, &CurMode );
+#endif
 	 TermMode = GET_MODE;
       }
    else
@@ -162,7 +180,11 @@ PUBLIC BYTE GetAKey()
 	 {
 	 CurMode.c_cc[VTIME] = 0;
 	 CurMode.c_cc[VMIN] = 1;
+#ifdef MINIX
+	 tcsetattr(0, TCSANOW, &CurMode);
+#else
 	 ioctl( 0, TCSETS, &CurMode );
+#endif
 	 TermMode = GET_MODE;
 	 }
    (void)read(0, &c, 1);
@@ -241,19 +263,27 @@ PUBLIC VOID SpGetkey()
      };
 #endif
 
-#ifdef SUN          
+#if defined(SUN) || defined(MINIX)
      if ( TermMode == ORG_MODE ) {
        CurMode.c_iflag &= ~ICRNL;
        CurMode.c_lflag &= ~(ICANON | ECHO);
        CurMode.c_cc[VTIME] = 1;
        CurMode.c_cc[VMIN] = 0;
+#ifdef MINIX
+       tcsetattr(0, TCSANOW, &CurMode);
+#else
        ioctl( 0, TCSETS, &CurMode );
+#endif
        TermMode = POLL_MODE;
       } else {
 	if ( TermMode == GET_MODE ) {
 	  CurMode.c_cc[VTIME] = 1;
 	  CurMode.c_cc[VMIN] = 0;
+#ifdef MINIX
+	  tcsetattr(0, TCSANOW, &CurMode);
+#else
 	  ioctl( 0, TCSETS, &CurMode );
+#endif
 	  TermMode = POLL_MODE;
 	};
       };
@@ -340,14 +370,18 @@ PUBLIC VOID SpPollkey()
 	 PUT_BYTE( SP_ERROR );
       }
 #endif
-#ifdef SUN
+#if defined(SUN) || defined(MINIX)
    if ( TermMode == ORG_MODE )
       {
 	 CurMode.c_iflag &= ~ICRNL;
 	 CurMode.c_lflag &= ~(ICANON | ECHO);
 	 CurMode.c_cc[VTIME] = 1;
 	 CurMode.c_cc[VMIN] = 0;
+#ifdef MINIX
+	 tcsetattr(0, TCSANOW, &CurMode);
+#else
 	 ioctl( 0, TCSETS, &CurMode );
+#endif
 	 TermMode = POLL_MODE;
       }
    else
@@ -355,7 +389,11 @@ PUBLIC VOID SpPollkey()
 	 {
 	    CurMode.c_cc[VTIME] = 1;
 	    CurMode.c_cc[VMIN] = 0;
+#ifdef MINIX
+	    tcsetattr(0, TCSANOW, &CurMode);
+#else
 	    ioctl( 0, TCSETS, &CurMode );
+#endif
 	    TermMode = POLL_MODE;
 	 }
 
@@ -469,7 +507,7 @@ PUBLIC VOID SpTime()
    REPLY;
 #endif
 
-#ifdef SUN
+#if defined(SUN) || defined(MINIX)
    UTCTime = time(NULL);
    Time = UTCTime + (localtime(&UTCTime))->tm_gmtoff;
    PUT_BYTE( SP_SUCCESS );
