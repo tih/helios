@@ -124,6 +124,21 @@ PUBLIC VOID SpOpen()
 #define TEXT_6 "a+"
 #endif
 
+#ifdef MINIX
+#define BINARY_1 "r"
+#define BINARY_2 "w"
+#define BINARY_3 "a"
+#define BINARY_4 "r+"
+#define BINARY_5 "w+"
+#define BINARY_6 "a+"
+#define TEXT_1 BINARY_1 
+#define TEXT_2 BINARY_2 
+#define TEXT_3 BINARY_3 
+#define TEXT_4 BINARY_4 
+#define TEXT_5 BINARY_5 
+#define TEXT_6 BINARY_6 
+#endif
+
 #ifdef VMS
 #define BINARY_1 "rb"
 #define BINARY_2 "wb"
@@ -533,6 +548,9 @@ PUBLIC VOID SpSeek()
 #ifdef SUN
    origin = (int)--Origin;
 #endif
+#ifdef MINIX
+   origin = (int)--Origin;
+#endif
 #ifdef VMS
    origin = (int)--Origin;
 #endif
@@ -700,7 +718,7 @@ PUBLIC VOID SpRemove()
       }
    else
       {
-#ifdef SUN
+#if defined(SUN) || defined(MINIX)
          if( unlink( Name ) )
 #else
          if( remove( Name ) )

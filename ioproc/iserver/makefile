@@ -69,12 +69,12 @@
 #
 HW=B008
 LINKMODULE=minix
-CC=cc
+CC=cc -c
 CFLAGS=-O -g -DMINIX -DBOARD_ID=$(HW)
 E=
 O=.o
 OBJECTS=iserver$(O) filec$(O) hostc$(O) serverc$(O) $(LINKMODULE)$(O)
-LINK=cc -g -o iserver$(E) $(OBJECTS)
+LINK=cc -o iserver$(E) $(OBJECTS)
 
 
 

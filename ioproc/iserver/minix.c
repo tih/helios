@@ -16,6 +16,8 @@
 #include <fcntl.h>
 #include <sys/errno.h>
 
+#include "iserver.h"
+
 #define NULL_LINK -1
 
 extern int errno;
@@ -52,13 +54,6 @@ int OpenLink ( Name )
       if ((ActiveLink = open(Name, O_RDWR)) >= 0)
          return ActiveLink;
    }
-
-   if (errno == EBUSY)
-      return ER_LINK_BUSY;
-   else if (errno == ENOENT)
-      return ER_LINK_SYNTAX;
-   else if ((errno == ENXIO) || (errno == ENODEV))
-      return ER_NO_LINK;
 
    return ER_LINK_CANT;
 }

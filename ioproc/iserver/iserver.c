@@ -668,6 +668,9 @@ PUBLIC void BreakHandler()
 #ifdef SUN
                           (void)system(getenv("SHELL"));
 #endif
+#ifdef MINIX
+                          (void)system(getenv("SHELL"));
+#endif
 #ifdef HELIOS
                           (void)system(getenv("SHELL"));
 #endif
