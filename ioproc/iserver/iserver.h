@@ -104,7 +104,9 @@
 #ifndef MSC
 #ifndef VMS
 #ifndef SUN
+#ifndef MINIX
 #define UNDEFINED_HOST
+#endif
 #endif
 #endif
 #endif
@@ -118,6 +120,9 @@
 #endif
 #ifdef VMS
 #define SWITCH_CHAR '/'
+#endif
+#ifdef MINIX
+#define SWITCH_CHAR '-'
 #endif
 #ifdef UNDEFINED_HOST
 #define SWITCH_CHAR '-'
@@ -150,6 +155,14 @@ globalvalue iserv_fail;
 #define TERMINATE_OTHER_STATUS   (5)
 #endif
 #ifdef SUN
+#define TERMINATE_OK_EXIT     (0)
+#define TERMINATE_FAIL_EXIT   (1)
+#define USER_EXIT             (2)
+#define ERROR_FLAG_EXIT       (3)
+#define MISC_EXIT             (4)
+#define TERMINATE_OTHER_STATUS   (5)
+#endif
+#ifdef MINIX
 #define TERMINATE_OK_EXIT     (0)
 #define TERMINATE_FAIL_EXIT   (1)
 #define USER_EXIT             (2)
@@ -193,6 +206,7 @@ globalvalue iserv_fail;
 #define OS_VMS     3
 #define OS_SUN40   4
 #define OS_CMS     5
+#define OS_MINIX   6
 
 #ifdef sun3
 #define HOST         "Sun3/SunOS4.0"
@@ -234,6 +248,12 @@ globalvalue iserv_fail;
 #define OS_ID        OS_HELIOS
 #endif
 
+#ifdef MINIX
+#define HOST         "MINIX 3"
+#define HOST_ID      BOX_PC
+#define OS_ID        OS_MINIX
+#endif
+
 #ifndef HOST_ID
 #define HOST         "???"
 #define HOST_ID BOX_X
@@ -241,6 +261,13 @@ globalvalue iserv_fail;
 
 #ifndef OS_ID
 #define OS_ID OS_X
+#endif
+
+#ifdef MINIX
+#ifdef B004
+#undef B004
+#undef B008
+#endif
 #endif
 
 #define HW_X      0

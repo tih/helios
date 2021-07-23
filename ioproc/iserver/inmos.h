@@ -31,6 +31,14 @@
 #define INT32 int
 #endif
 
+#ifdef MINIX
+#include <sys/endian.h>
+#if BYTE_ORDER == BIG_ENDIAN
+#undef LITTLE_ENDIAN
+#else
+#undef BIG_ENDIAN
+#endif
+#else
 #ifdef sun3
 #define BIG_ENDIAN
 #else
@@ -38,6 +46,7 @@
 #define BIG_ENDIAN
 #else
 #define LITTLE_ENDIAN
+#endif
 #endif
 #endif
 

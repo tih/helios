@@ -25,7 +25,7 @@
 #HW=UDP
 #LINKMODULE=udplink
 #CFLAGS= -pipe -g -D`arch` -DSUN -DFASTPEEK -DBOARD_ID=$(HW)
- 
+
 #CC=cc -c
 #E=
 #O=.o
@@ -38,9 +38,9 @@
 #   pc / msdos 3+ / microsoft c 5.1 [and masm 5.1]
 #
 #   uncomment the next 3 lines, then a link driver, then a further 2 lines at the end
-O=.obj
-CC=cl
-E=.exe
+#O=.obj
+#CC=cl
+#E=.exe
 #   use the next 2 lines for b004 or b008  with assembler support
 #HW=B004
 #OBJECTS=iserver$(O) filec$(O) hostc$(O) serverc$(O) msdosc$(O) b004fast$(O) b004asm$(O)
@@ -52,15 +52,29 @@ E=.exe
 #LINKMODULE=b004link
 #OBJECTS=iserver$(O) filec$(O) hostc$(O) serverc$(O) msdosc$(O) $(LINKMODULE)$(O)
 #   use the next 3 lines for b008 if you have S708 device driver
-HW=B008
-LINKMODULE=b008link
-OBJECTS=iserver$(O) filec$(O) hostc$(O) serverc$(O) msdosc$(O) $(LINKMODULE)$(O)
+#HW=B008
+#LINKMODULE=b008link
+#OBJECTS=iserver$(O) filec$(O) hostc$(O) serverc$(O) msdosc$(O) $(LINKMODULE)$(O)
 #   use the next line for NEC PC
 #CFLAGS=-c -Ox -DMSC -DNEC -DBOARD_ID=B010 # -DBOARD_ID=B015
 #   or this for regular PC
-CFLAGS=-c -Ox -DMSC -DBOARD_ID=$(HW)
+#CFLAGS=-c -Ox -DMSC -DBOARD_ID=$(HW)
 #   and uncomment this for all versions
-LINK=cl -Ox -o iserver$(E) /F 4000 $(OBJECTS)
+#LINK=cl -Ox -o iserver$(E) /F 4000 $(OBJECTS)
+
+
+
+#
+#   B004 type subsystem, MINIX 3
+#
+HW=B008
+LINKMODULE=minix
+CC=cc
+CFLAGS=-O -g -DMINIX -DBOARD_ID=$(HW)
+E=
+O=.o
+OBJECTS=iserver$(O) filec$(O) hostc$(O) serverc$(O) $(LINKMODULE)$(O)
+LINK=cc -g -o iserver$(E) $(OBJECTS)
 
 
 
