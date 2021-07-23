@@ -24,8 +24,13 @@
 #include "udplink.h"
 #endif
 
-#if defined(SUN) || defined(MINIX)
+#ifdef SUN
 #include <sys/termios.h>
+#endif
+
+#ifdef MINIX
+#include <sys/termios.h>
+#include <stdlib.h>
 #endif
 
 #ifdef VMS
@@ -476,7 +481,7 @@ PUBLIC VOID SpGetenv()
 	    {
 	       DEBUG(( "\"%s\"", Name ));
 	       PUT_BYTE( SP_SUCCESS );
-	       Size = strlen( Name );
+	       Size = strlen( (char *)Name );
 	       PUT_SLICE( Size, Name );
 	    }
       }
@@ -492,7 +497,11 @@ PUBLIC VOID SpGetenv()
 PUBLIC VOID SpTime()
 {
    BUFFER_DECLARATIONS;
+#ifdef MINIX
+   time_t Time, UTCTime;
+#else
    long Time, UTCTime;
+#endif
 
    DEBUG(( "SP.TIME" ));
    INIT_BUFFERS;
@@ -556,7 +565,7 @@ PUBLIC VOID SpSystem()
    Command = &DataBuffer[0];
    GET_SLICE( Size, Command ); *(Command+Size)=0; DEBUG(( "\"%s\"", Command ));
    Status = system( Command );
-   DEBUG(( "status %ld", Status ));
+   DEBUG(( "status %ld", (long)Status ));
    PUT_BYTE( SP_SUCCESS );
    PUT_INT32( Status );
    REPLY;

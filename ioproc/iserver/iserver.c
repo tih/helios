@@ -32,6 +32,11 @@
 #include <posix.h>
 #endif
 
+#ifdef MINIX
+#include <stdlib.h>
+#include <unistd.h>
+#endif
+
 #include "inmos.h"
 #include "iserver.h"
 
@@ -80,6 +85,7 @@ EXTERN int  TestError();
 EXTERN int  TestRead();
 EXTERN int  TestWrite();
 
+EXTERN BYTE GetAKey();
 EXTERN VOID HostBegin();
 EXTERN VOID HostEnd();
 EXTERN VOID ResetTerminal();
@@ -180,7 +186,7 @@ PRIVATE VOID Boot()
      };
    };
 #else
-   if ( ( Fd=fopen( BootFileName, "rb" ) ) == NULL )
+   if ( ( Fd=fopen( (char *)BootFileName, "rb" ) ) == NULL )
       ABORT(MISC_EXIT, (SE, "cannot find boot file \"%s\"", BootFileName));
    INFO(("Booting root transputer..."));
    while ( ( Length = fread( Buffer, 1, BOOT_BUFFER_LENGTH, Fd ) ) > 0 )
@@ -218,7 +224,7 @@ PRIVATE VOID Boot()
       {
          INFO(("ok\n"));
       }
-   DEBUG(( "booted %ld bytes", Size ));
+   DEBUG(( "booted %ld bytes", (long)Size ));
 }
 
 
@@ -392,7 +398,7 @@ PRIVATE VOID ParseCommandLine ()
 
    for(;;)
       {
-         if ( *s == NULL )                                                 /*  end of command line  */
+         if ( *s == 0 )                                                    /*  end of command line  */
            return;
          if (  (*s==SWITCH_CHAR) && ( (*(s+1)=='s') || (*(s+1)=='S') )  )
             {         /*  its a server option  */
@@ -745,21 +751,21 @@ PUBLIC int main (argc, argv)
    *RealCommandLine = 0;
    while ( argc-- > 0 )
       {
-         if ( ( MAX_COMMAND_LINE_LENGTH - strlen( RealCommandLine) ) < strlen( *argv ) )
+	 if ( ( MAX_COMMAND_LINE_LENGTH - strlen( (char *)RealCommandLine) ) < strlen( *argv ) )
             {
                ABORT(MISC_EXIT, (SE, "Command line too long (at \"%s\")", *argv) )
             }
          if (QuotedArg(*argv)) {
             Quoted = TRUE;
-            (void)strcat( RealCommandLine, "\"" );
+            (void)strcat( (char *)RealCommandLine, "\"" );
          }
          else
             Quoted = FALSE;
 
-         (void)strcat( RealCommandLine, *argv );
+         (void)strcat( (char *)RealCommandLine, *argv );
          if (Quoted)
-            (void)strcat( RealCommandLine, "\"");
-         (void)strcat( RealCommandLine, " " );
+	    (void)strcat( (char *)RealCommandLine, "\"");
+         (void)strcat( (char *)RealCommandLine, " " );
          ++argv;
       }
    for ( c=RealCommandLine; *c ; ++c )                                     /*  strip of the last space  */
@@ -779,7 +785,7 @@ PUBLIC int main (argc, argv)
    if ( CocoPops )
       printf("(analyse=%d error=%d verbose=%d link=%d reset=%d serve=%d load=%d coco=%d)\n", AnalyseSwitch, TestErrorSwitch, VerboseSwitch, LinkSwitch, ResetSwitch, ServeSwitch, LoadSwitch, CocoPops );
 
-   DEBUG(("peek size = %ld bytes\n", CoreSize));
+   DEBUG(("peek size = %ld bytes\n", (long)CoreSize));
    if ((CoreDump = (BYTE *) malloc(CoreSize)) == NULL)
       ABORT(MISC_EXIT, (SE, "failed to allocate CoreDump buffer\n"));
 
@@ -788,18 +794,19 @@ PUBLIC int main (argc, argv)
    if ( *LinkName == 0 )
       {
          if ( ( ALinkName = (BYTE *)getenv("TRANSPUTER") ) != NULL )
-            strcpy( LinkName, ALinkName );
+	   strcpy( (char *)LinkName, ALinkName );
       }
       
    DEBUG(("and \"%s\" as the link name", LinkName));
 
-   if ( ( TheLink = OpenLink( LinkName ) ) < 1 )
+   if ( ( TheLink = OpenLink( LinkName ) ) < 1 ) {
       if(TheLink == ER_LINK_BAD){
          ABORT(MISC_EXIT, (SE, "Bad link specification"));
       }
       else{
          ABORT(MISC_EXIT, (SE, "unable to access a transputer"));
       }
+   }
 
    if ( ResetSwitch && AnalyseSwitch )
       ABORT(MISC_EXIT, (SE, "reset and analyse are incompatible"));
