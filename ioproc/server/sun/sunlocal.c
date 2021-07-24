@@ -1794,7 +1794,8 @@ PRIVATE void initialise_signals()
   signal(SIGPIPE  , SIG_IGN);
 #endif
 #ifdef   SIGALRM
-#if (SM90 || SOLARIS)
+#if (SM90 || SOLARIS || MINIX)
+  signal(SIGALRM  , SIG_IGN);
 #else
   signal(SIGALRM  , sigfunc_(alarm_handler));
   alarm(2);   /* cause an alarm signal every second, this causes any */
