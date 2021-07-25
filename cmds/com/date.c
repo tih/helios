@@ -216,6 +216,7 @@ success:
     { str++; year = 0; while(isdigit(*str)) year = (10 * year) + *str++ - '0'; }
 
   if (year > 1900) year -= 1900;
+  if (year < 70) year += 100;
 
   mytm->tm_mday = days; mytm->tm_mon = month; mytm->tm_year = year;
 
