@@ -178,6 +178,9 @@ struct tm *localtime(const time_t *timer)
     if (t == (time_t)-1) memset(&_tms, 0, sizeof(_tms)), _tms.tm_mday = 1;
     else
     {   /* unix time already in seconds (since 1-Jan-1970) ... */
+#ifdef TZOFFSET
+	t += TZOFFSET;	/* Helios has no idea of TZ; adjust to local time */
+#endif
         _tms.tm_sec = t % 60; t /= 60;
         _tms.tm_min = t % 60; t /= 60;
         _tms.tm_hour = t % 24; t /= 24;

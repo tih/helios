@@ -172,6 +172,10 @@ ifeq ($(HPROC),ARM6)
   NCFLAGS := $(NCFLAGS) -dPOSIX -DBYTESEX_EVEN -Zt
 endif
 
+ifdef TZOFFSET
+  NCFLAGS := $(NCFLAGS) -dTZOFFSET=${TZOFFSET}
+endif
+
 # Note any library def files to be linked with
 LIBDEFS	:= $(LIB)/kernel.def $(LIB)/syslib.def $(LIB)/posix.def $(LIB)/util.def
 

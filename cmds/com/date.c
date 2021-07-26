@@ -55,6 +55,9 @@ int main(int argc, char *argv[])
 analyse_buffer:
              /* work out what the user meant */
   Now = get_date(buffer, Now);
+#ifdef TZOFFSET
+  Now -= TZOFFSET;	/* Helios has no idea of TZ; adjust from local time */
+#endif
   
              /* and change the date */
   dates.Creation = 0;

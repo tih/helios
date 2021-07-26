@@ -240,6 +240,11 @@ else
 	$(CC) -c -DUSERMEM=128000 -o$@ $<
 endif
 
+ifdef TZOFFSET
+date.o : date.c
+	$(CC) -c -DTZOFFSET=${TZOFFSET} -o$@ $<
+endif
+
 threadps.o : threadps.c
 	$(NC) -c $(NCFLAGS) -I$(HSRC)/kernel -o$@ $<
 

@@ -5,12 +5,11 @@ setenv HHOST HELIOSTRAN
 
 set hsrc=/helios/src
 setenv HSRC  $hsrc
-
 setenv HPROD /helios
-
 setenv HHOSTBIN /helios/bin
-
 setenv HLICENSEE PERIHELION
+
+setenv TZOFFSET 7200
 
 test -d TRAN
 if ($status == 0) then
