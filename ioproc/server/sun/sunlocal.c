@@ -45,6 +45,10 @@
 #include <sys/vfs.h>
 #endif
 
+#if MINIX
+#include <sys/statvfs.h>
+#endif
+
 /*
  * Entries from curses.h/term.h
  */
@@ -2459,26 +2463,34 @@ WORD get_drive_info(name, reply)
 char *name;
 servinfo *reply;
 { 
-#if (SM90 || TR5 || i486V4 || MINIX) /* statfs not supported */
+#if (SM90 || TR5 || i486V4) /* statfs not supported */
   reply->size  = 0L;
   reply->used  = 0L;
   reply->alloc = 512;
   return(TRUE);
 
-#else 
+#else
 
 #if (UNIX386 || SCOUNIX || SOLARIS)
 #define f_bavail f_bfree
 #endif
 
+#if MINIX
+  struct statvfs buf;
+  reply->type = swap(Type_Directory);
+  if (statvfs(name, &buf) ne 0)
+    { convert_error();  return (FALSE); }
+#else
   struct statfs buf;
   reply->type = swap(Type_Directory);
   if (statfs(name, &buf, sizeof(struct statfs), 0) ne 0)
    { convert_error();  return (FALSE); }
+#endif
+
   reply->size  = swap((WORD) buf.f_bsize*buf.f_blocks);
   reply->used  = swap((WORD) buf.f_bsize*buf.f_bavail);
   reply->alloc = swap((WORD) buf.f_bsize);
-  
+
   return(TRUE);
 #endif
 }
