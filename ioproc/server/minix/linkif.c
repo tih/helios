@@ -29,7 +29,7 @@ int minix_open_link(int idx) {
     return 0;
 
   if (get_config("no_dma") ne (char *) NULL)
-    ioctl(link_table[idx].fildes, B004NODMA);
+    ioctl(link_table[idx].fildes, B004DMADISABLE);
 
   link_table[idx].flags |= Link_flags_not_selectable;
 
