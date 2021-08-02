@@ -1,4 +1,4 @@
-#include "helios.h"
+#include "../helios.h"
 
 /**
 *** number_rawdisks should return the number of drives or 0 
@@ -19,15 +19,17 @@ PUBLIC int fn(number_rawdisks, (void)) {
   return 0;
 }
 
-PUBLIC word fn(size_rawdisk, (int)) {
-  return 65536;
+PUBLIC word fn(size_rawdisk, (int n)) {
+  if (n == 0)
+    return 65536;
+  return 0;
 }
 
 PUBLIC word fn(read_rawdisk, (int disk, word first_sec, word no_secs, byte *buff )) {
   size_t ret;
   if (lseek(disk0, (off_t)(first_sec * 512), SEEK_SET) < 0)
     return errno;
-  if ((ret = read(disk0, buf, (size_t)(no_secs * 512))) < 0)
+  if ((ret = read(disk0, buff, (size_t)(no_secs * 512))) < 0)
     return errno;
   return ret;
 }
@@ -36,7 +38,7 @@ PUBLIC word fn(write_rawdisk, (int disk, word first_sec, word no_secs, byte *buf
   size_t ret;
   if (lseek(disk0, (off_t)(first_sec * 512), SEEK_SET) < 0)
     return errno;
-  if ((ret = write(disk0, buf, (size_t)(no_secs * 512))) < 0)
+  if ((ret = write(disk0, buff, (size_t)(no_secs * 512))) < 0)
     return errno;
   return ret;
 }
