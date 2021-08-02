@@ -556,7 +556,11 @@
 #define Printer_supported            0
 #define Midi_supported               0
 #define Ether_supported              0
+#if MINIX
+#define Rawdisk_supported            1
+#else
 #define Rawdisk_supported            0
+#endif
 #define drives_are_special           0
 #define floppies_available           0
 #define use_own_memory_management    0

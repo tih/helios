@@ -5,7 +5,7 @@
 
 # start with the makefile configuration
 host     = MINIX
-linkobjs = sun/linklib.o minix/linkif.o  
+linkobjs = sun/linklib.o minix/linkif.o minix/rawdisk.o
 
 colibobjs = minix/colib.o
 colib_link = minix/colib.o -ltermcap
@@ -73,6 +73,10 @@ sun/linklib.o : sun/linklib.c $(header)
 minix/linkif.o : minix/linkif.c $(header)
 	$(mycc) minix/linkif.c
 	mv linkif.o $@
+
+minix/rawdisk.o : minix/rawdisk.c $(header)
+	$(mycc) minix/rawdisk.c
+	mv rawdisk.o $@
 
 sun/hydra.o : sun/hydra.c $(header)
 	$(mycc) sun/hydra.c
