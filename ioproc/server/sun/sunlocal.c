@@ -2427,8 +2427,8 @@ ObjInfo *Heliosinfo;
    }
                           /* we have got the info, now convert and store it */
   Heliosinfo->DirEntry.Type = swap(type);
-  if ((!strncmp(localname, Heliosdir, strlen(Heliosdir))) &&
-      (localname[strlen(Heliosdir)] == '/')) {
+  if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
+      (local_name[strlen(Heliosdir)] == '/')) {
     Heliosinfo->DirEntry.Matrix = swap((type eq Type_Directory) ?
 				       DefDirMatrix : DefFileMatrix);
   } else {
@@ -2438,6 +2438,7 @@ ObjInfo *Heliosinfo;
     if (searchbuffer.st_mode & S_IWOTH)
       Heliosinfo->DirEntry.Matrix |= ACC_RRRR;
     Heliosinfo->DirEntry.Matrix = swap(Heliosinfo->DirEntry.Matrix);
+  }
   Heliosinfo->DirEntry.Flags  = swap(0L);
   Heliosinfo->Account   = swap(0L);
   Heliosinfo->Size      = swap(searchbuffer.st_size);
