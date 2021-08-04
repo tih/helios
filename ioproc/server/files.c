@@ -995,17 +995,17 @@ use(myco)
 *** PC swap() is hash-defined to be a no-op.
 **/
 
-void objdb_store(char *, ObjInfo *) {
+void objdb_store(char *path, ObjInfo *info) {
 }
 
-void objdb_update(char *, ObjInfo *) {
+void objdb_update(char *path, ObjInfo *info) {
 }
 
-int objdb_lookup(char *, ObjInfo *) {
+int objdb_lookup(char *path, ObjInfo *info) {
   return 0;
 }
 
-void objdb_remove(char *) {
+void objdb_remove(char *path) {
 }
 
 void Drive_ObjectInfo(myco)
@@ -1087,9 +1087,6 @@ Conode *myco;
     }
   } else {
     get_file_info(local_name, Heliosinfo);
-    if ((!strncmp(localname, Heliosdir, strlen(Heliosdir))) &&
-	(localname[strlen(Heliosdir)] == '/'))
-      Heliosinfo->Direntry.Matrix = DefDirMatrix;
     objdb_store(local_name, Heliosinfo);
   }
 
