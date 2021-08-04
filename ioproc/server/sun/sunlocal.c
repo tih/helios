@@ -2427,8 +2427,8 @@ ObjInfo *Heliosinfo;
    }
                           /* we have got the info, now convert and store it */
   Heliosinfo->DirEntry.Type = swap(type);
-  if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
-      (local_name[strlen(Heliosdir)] == '/')) {
+  if ((!strncmp(name, Heliosdir, strlen(Heliosdir))) &&
+      (name[strlen(Heliosdir)] == '/')) {
     Heliosinfo->DirEntry.Matrix = swap((type eq Type_Directory) ?
 				       DefDirMatrix : DefFileMatrix);
   } else {
