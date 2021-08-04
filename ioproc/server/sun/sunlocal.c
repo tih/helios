@@ -2436,7 +2436,7 @@ ObjInfo *Heliosinfo;
     if (searchbuffer.st_mode & S_IROTH)
       Heliosinfo->DirEntry.Matrix |= ACC_RRRR;
     if (searchbuffer.st_mode & S_IWOTH)
-      Heliosinfo->DirEntry.Matrix |= ACC_RRRR;
+      Heliosinfo->DirEntry.Matrix |= ACC_WWWW;
     Heliosinfo->DirEntry.Matrix = swap(Heliosinfo->DirEntry.Matrix);
   }
   Heliosinfo->DirEntry.Flags  = swap(0L);
