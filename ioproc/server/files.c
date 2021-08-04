@@ -995,10 +995,24 @@ use(myco)
 *** PC swap() is hash-defined to be a no-op.
 **/
 
+void objdb_store(char *, ObjInfo *) {
+}
+
+void objdb_update(char *, ObjInfo *) {
+}
+
+int objdb_lookup(char *, ObjInfo *) {
+  return 0;
+}
+
+void objdb_remove(char *) {
+}
+
 void Drive_ObjectInfo(myco)
 Conode *myco;
-{                      /* put info in data vector straightaway, nothing in */
-                       /* there that we need any more */
+{
+  ObjInfo local_info;
+  int local_exists, entry_exists;
   register ObjInfo *Heliosinfo = (ObjInfo *) mcb->Data;
 
   if (!strcmp(IOname, "helios"))    /* Check for an ObjInfo on /helios */
@@ -1037,31 +1051,47 @@ Conode *myco;
     }
 #endif
 
-  Server_errno = EC_Error + SS_IOProc + EG_Unknown + EO_File;
+  entry_exists = objdb_lookup(local_name, Heliosinfo);
+  local_exists = object_exists(local_name);
 
-                            /* object must be a file or directory, get the */
-                            /* required info checking that it exists */
-  unless(object_exists(local_name))
-    {
+  if (local_exists) {
+    if (!get_file_info(local_name, &local_info)) {
+	Server_errno = EC_Error + SS_IOProc + EG_Broken + EO_Directory;
 #if floppies_available
-      if (floppy_errno) floppy_handler();
-#endif
-      Debug (FileIO_Flag, ("object %s does not exist locally", local_name));
-      Request_Return(Server_errno, 0L, 0L);
-      return;
-    }
-
-  Server_errno = EC_Error + SS_IOProc + EG_Broken + EO_Directory;
-
-  unless(get_file_info(local_name, Heliosinfo))
-    {
-#if floppies_available
-      if (floppy_errno) floppy_handler();
+	if (floppy_errno) floppy_handler();
 #endif 
-      Debug (FileIO_Flag, ("failed to get file info for %s", local_name));
-      Request_Return(Server_errno, 0L, 0L);
-      return;
+	Debug (FileIO_Flag, ("failed to get file info for %s", local_name));
+	Request_Return(Server_errno, 0L, 0L);
+	return;
+      }
+  } else {
+    if (entry_exists)
+      objdb_remove(local_name);
+    Server_errno = EC_Error + SS_IOProc + EG_Unknown + EO_File;
+#if floppies_available
+    if (floppy_errno) floppy_handler();
+#endif
+    Debug (FileIO_Flag, ("object %s does not exist locally", local_name));
+    Request_Return(Server_errno, 0L, 0L);
+    return;
+  }
+
+  if (entry_exists) {
+    if ((Heliosinfo->Size != local_info.Size) ||
+	(Heliosinfo->Access != local_info.Access) ||
+	(Heliosinfo->Modified != local_info.Modified)) {
+      Heliosinfo->Size = local_info.Size;
+      Heliosinfo->Access = local_info.Access;
+      Heliosinfo->Modified = local_info.Modified;
+      objdb_update(local_name, Heliosinfo);
     }
+  } else {
+    get_file_info(local_name, Heliosinfo);
+    if ((!strncmp(localname, Heliosdir, strlen(Heliosdir))) &&
+	(localname[strlen(Heliosdir)] == '/'))
+      Heliosinfo->Direntry.Matrix = DefDirMatrix;
+    objdb_store(local_name, Heliosinfo);
+  }
 
   Request_Return(ReplyOK, 0L, (word) sizeof(ObjInfo));
 use(myco)

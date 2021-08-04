@@ -2378,6 +2378,10 @@ char *name;
   return(TRUE);
 }
 
+#define ACC_VXYZ 0x20100804L
+#define ACC_RRRR 0x01010101L
+#define ACC_WWWW 0x02020202L
+
 /**
 *** get_file_info() is called only after a successful object_exists() i.e.
 *** a stat(), so that all the information required is available in
@@ -2387,8 +2391,9 @@ WORD get_file_info(name, Heliosinfo)
 char    *name;
 ObjInfo *Heliosinfo;
 { WORD type;
-  WORD time = searchbuffer.st_mtime; /* I guess modified time's what we */
-                                     /* most often mean  */
+  WORD ctime = searchbuffer.st_ctime;
+  WORD mtime = searchbuffer.st_mtime;
+  WORD atime = searchbuffer.st_atime;
 
   { char *p = name + strlen(name);
     while (*p ne '/') p--;
@@ -2422,19 +2427,26 @@ ObjInfo *Heliosinfo;
    }
                           /* we have got the info, now convert and store it */
   Heliosinfo->DirEntry.Type = swap(type);
-  Heliosinfo->DirEntry.Matrix = swap((type eq Type_Directory) ?
-                                     DefDirMatrix : DefFileMatrix);
-
+  if ((!strncmp(localname, Heliosdir, strlen(Heliosdir))) &&
+      (localname[strlen(Heliosdir)] == '/')) {
+    Heliosinfo->DirEntry.Matrix = swap((type eq Type_Directory) ?
+				       DefDirMatrix : DefFileMatrix);
+  } else {
+    Heliosinfo->DirEntry.Matrix = (type eq Type_Directory) ? ACC_VXYZ : 0L;
+    if (searchbuffer.st_mode & S_IROTH)
+      Heliosinfo->DirEntry.Matrix |= ACC_RRRR;
+    if (searchbuffer.st_mode & S_IWOTH)
+      Heliosinfo->DirEntry.Matrix |= ACC_RRRR;
+    Heliosinfo->DirEntry.Matrix = swap(Heliosinfo->DirEntry.Matrix);
   Heliosinfo->DirEntry.Flags  = swap(0L);
   Heliosinfo->Account   = swap(0L);
   Heliosinfo->Size      = swap(searchbuffer.st_size);
-  Heliosinfo->Creation  = swap(time);
-  Heliosinfo->Access    = swap(time);
-  Heliosinfo->Modified  = swap(time);
+  Heliosinfo->Creation  = swap(ctime);
+  Heliosinfo->Access    = swap(atime);
+  Heliosinfo->Modified  = swap(mtime);
 
   return(TRUE);
 }
-
 
 
 WORD set_file_date(name,time) 
