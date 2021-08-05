@@ -303,34 +303,23 @@ extern word   fn(object_isadirectory,(char *));
 PRIVATE char *HeliosObjDBName;
 PRIVATE sqlite3 *HeliosObjDB;
 
-char *ObjDB_PUT_SQL =
+char *ObjDB_PUT =
   "insert into objinfo (name, account, flags, matrix, key)"
-  " values (%, %, %, %, %);";
-char *ObjDB_UPD_SQL =
-  "update objinfo"
-  " set account = %, flags = %, matrix = %, key = %"
-  " where name = %;";
-char *ObjDB_GET_SQL =
+  " values(%, %, %, %, %);";
+
+char *ObjDB_GET =
   "select account, flags, matrix, key from objinfo"
   " where name = %;";
-char *ObjDB_DEL_SQL =
-  "delete from objinfo"
-  " where name = %;";
 
-PRIVATE sqlite3_stmt *ObjDB_put;
-PRIVATE sqlite3_stmt *ObjDB_upd;
-PRIVATE sqlite3_stmt *ObjDB_get;
-PRIVATE sqlite3_stmt *ObjDB_del;
+PRIVATE sqlite3_stmt *ObjDB_put, *ObjDB_get;
 
 PRIVATE sqlite3 *objdb_open(char *db) {
   int ret;
   sqlite3 *handle;
   ret = sqlite3_open_v2(db, &handle, SQLITE_OPEN_READWRITE, NULL);
   if (ret == SQLITE_OK) {
-    sqlite3_prepare_v2(handle, ObjDB_PUT_SQL, -1, &ObjDB_put, NULL);
-    sqlite3_prepare_v2(handle, ObjDB_UPD_SQL, -1, &ObjDB_upd, NULL);
-    sqlite3_prepare_v2(handle, ObjDB_GET_SQL, -1, &ObjDB_get, NULL);
-    sqlite3_prepare_v2(handle, ObjDB_DEL_SQL, -1, &ObjDB_del, NULL);
+    sqlite3_prepare_v2(handle, ObjDB_PUT, -1, &ObjDB_put, NULL);
+    sqlite3_prepare_v2(handle, ObjDB_GET, -1, &ObjDB_get, NULL);
     HeliosObjDB = handle;
   }
 }
@@ -338,13 +327,48 @@ PRIVATE sqlite3 *objdb_open(char *db) {
 PRIVATE void objdb_close(void) {
 }
 
-PRIVATE void objdb_store(char *path, ObjInfo *info) {
+PRIVATE void objdb_store(char *path, word *account, word *flags,
+			 Matrix *matrix, word *key) {
+
+  sqlite3_reset(ObjDB_put);
+
+  sqlite3_bind_text(ObjDB_put, 1, path, -1, NULL);
+  sqlite3_bind_int(ObjDB_put, 2, account);
+  sqlite3_bind_int(ObjDB_put, 3, flags);
+  sqlite3_bind_int64(ObjDB_put, 4, matrix);
+  sqlite3_bind_int(ObjDB_put, 5, key);
+
+  if (sqlite3_step(ObjDB_put) == SQLITE_DONE)
+    Debug (FileIO_Flag, ("object %s stored in database", path));
+  else
+    Debug (FileIO_Flag, ("failed to store object %s in database", path));
 }
 
-PRIVATE void objdb_update(char *path, ObjInfo *info) {
+PRIVATE void objdb_update(char *path, word *account, word *flags,
+			  Matrix *matrix, word *key) {
 }
 
-PRIVATE int objdb_lookup(char *path, ObjInfo *info) {
+PRIVATE int objdb_lookup(char *path, word *account, word *flags,
+			  Matrix *matrix, word *key) {
+
+  sqlite3_reset(ObjDB_get);
+
+  sqlite3_bind_text(ObjDB_get, 1, path, -1, NULL);
+  if (sqlite3_step(ObjDB_get) == SQLITE_ROW) {
+    if (account)
+      *account = sqlite3_column_int(ObjDB_get, 0);
+    if (flags)
+      *flags = sqlite3_column_int(ObjDB_get, 1);
+    if (matrix)
+      *matrix = sqlite3_column_int64(ObjDB_get, 2);
+    if (key)
+      *key = sqlite3_column_int(ObjDB_get, 3);
+    Debug (FileIO_Flag, ("object %s fetched from database", path));
+    return 1;
+  }
+
+  Debug (FileIO_Flag, ("failed to fetch object %s from database", path));
+
   return 0;
 }
 
@@ -1066,7 +1090,7 @@ use(myco)
 void Drive_ObjectInfo(myco)
 Conode *myco;
 {
-  int local_exists, entry_exists;
+  int local_exists, entry_exists, key;
   register ObjInfo *Heliosinfo = (ObjInfo *) mcb->Data;
 
   if (!strcmp(IOname, "helios"))    /* Check for an ObjInfo on /helios */
@@ -1119,8 +1143,9 @@ Conode *myco;
     }
   }
 
-  entry_exists = objdb_lookup(local_name, Heliosinfo);
-
+  entry_exists = objdb_lookup(local_name, &Heliosinfo->Account,
+			      &Heliosinfo->DirEntry.Flags,
+			      &Heliosinfo->DirEntry.Matrix, &key);
   if (!local_exists) {
     if (entry_exists)
       objdb_remove(local_name);
@@ -1134,13 +1159,16 @@ Conode *myco;
   }
 
   if (!entry_exists) {
-    Heliosinfo->Account = swap(0L);
-    Heliosinfo->DirEntry.Flags = swap(0L);
+    Heliosinfo->Account = 0L;
+    Heliosinfo->DirEntry.Flags = 0L;
     if (!strncmp(IOname, "helios/", 7)) {
       Heliosinfo->DirEntry.Matrix =
-	swap((Heliosinfo->DirEntry.Type eq Type_Directory) ?
-	     DefDirMatrix : DefFileMatrix);
-      objdb_store(local_name, Heliosinfo);
+	(Heliosinfo->DirEntry.Type eq Type_Directory) ?
+	DefDirMatrix : DefFileMatrix;
+      key = random();
+      objdb_store(local_name,
+		  &Heliosinfo->Account, &Heliosinfo->DirEntry.Flags,
+		  &Heliosinfo->DirEntry.Matrix, &key);
     } else {
       if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
 	  (local_name[strlen(Heliosdir)] == '/')) {
@@ -1152,10 +1180,13 @@ Conode *myco;
 	  Heliosinfo->DirEntry.Matrix |= ACC_RRRR;
 	if (searchbuffer.st_mode & S_IWOTH)
 	  Heliosinfo->DirEntry.Matrix |= ACC_WWWW;
-	Heliosinfo->DirEntry.Matrix = swap(Heliosinfo->DirEntry.Matrix);
       }
     }
   }
+
+  Heliosinfo->Account = swap(Heliosinfo->Account);
+  Heliosinfo->DirEntry.Flags = swap(Heliosinfo->DirEntry.Flags);
+  Heliosinfo->DirEntry.Matrix = swap(Heliosinfo->DirEntry.Matrix);
 
   Request_Return(ReplyOK, 0L, (word) sizeof(ObjInfo));
 
