@@ -300,15 +300,56 @@ extern word   fn(object_isadirectory,(char *));
 
 #include <sqlite3.h>
 
-int objdb_open(char *);
-void objdb_close(void);
-void objdb_store(char *, ObjInfo *);
-void objdb_update(char *, ObjInfo *);
-int objdb_lookup(char *, ObjInfo *);
-void objdb_remove(char *);
+PRIVATE char *HeliosObjDBName;
+PRIVATE sqlite3 *HeliosObjDB;
 
-char *HeliosObjDBName;
-int HeliosObjDB;
+char *ObjDB_PUT_SQL =
+  "insert into objinfo (name, account, flags, matrix, key)"
+  " values (%, %, %, %, %);"
+char *ObjDB_UPD_SQL =
+  "update objinfo"
+  " set account = %, flags = %, matrix = %, key = %"
+  " where name = %;"
+char *ObjDB_GET_SQL =
+  "select account, flags, matrix, key from objinfo"
+  " where name = %;"
+char *ObjDB_DEL_SQL =
+  "delete from objinfo"
+  " where name = %;"
+
+PRIVATE sqlite3_stmt *ObjDB_put;
+PRIVATE sqlite3_stmt *ObjDB_upd;
+PRIVATE sqlite3_stmt *ObjDB_get;
+PRIVATE sqlite3_stmt *ObjDB_del;
+
+PRIVATE sqlite3 *objdb_open(char *db) {
+  int ret;
+  sqlite3 *handle;
+  ret = sqlite3_open_v2(db, &handle, SQLITE_OPEN_READWRITE, NULL);
+  if (ret == SQLITE_OK) {
+    sqlite3_prepare_v2(handle, ObjDB_PUT_SQL, -1, &ObjDB_put, NULL);
+    sqlite3_prepare_v2(handle, ObjDB_UPD_SQL, -1, &ObjDB_upd, NULL);
+    sqlite3_prepare_v2(handle, ObjDB_GET_SQL, -1, &ObjDB_get, NULL);
+    sqlite3_prepare_v2(handle, ObjDB_DEL_SQL, -1, &ObjDB_del, NULL);
+    HeliosObjDB = handle;
+  }
+}
+
+PRIVATE void objdb_close(void) {
+}
+
+PRIVATE void objdb_store(char *path, ObjInfo *info) {
+}
+
+PRIVATE void objdb_update(char *path, ObjInfo *info) {
+}
+
+PRIVATE int objdb_lookup(char *path, ObjInfo *info) {
+  return 0;
+}
+
+PRIVATE void objdb_remove(char *path) {
+}
 
 /**
 *** The following bits deal with name conversion. On entry to any server routine
@@ -1017,25 +1058,6 @@ use(myco)
 *** PC swap() is hash-defined to be a no-op.
 **/
 
-int objdb_open(char *db) {
-}
-
-void objdb_close(void) {
-}
-
-void objdb_store(char *path, ObjInfo *info) {
-}
-
-void objdb_update(char *path, ObjInfo *info) {
-}
-
-int objdb_lookup(char *path, ObjInfo *info) {
-  return 0;
-}
-
-void objdb_remove(char *path) {
-}
-
 #define ACC_VXYZ 0x20100804L
 #define ACC_ZZZZ 0x20202020L
 #define ACC_RRRR 0x01010101L
@@ -1044,7 +1066,6 @@ void objdb_remove(char *path) {
 void Drive_ObjectInfo(myco)
 Conode *myco;
 {
-  ObjInfo local_info;
   int local_exists, entry_exists;
   register ObjInfo *Heliosinfo = (ObjInfo *) mcb->Data;
 
@@ -1084,11 +1105,10 @@ Conode *myco;
     }
 #endif
 
-  entry_exists = objdb_lookup(local_name, Heliosinfo);
   local_exists = object_exists(local_name);
 
   if (local_exists) {
-    if (!get_file_info(local_name, &local_info)) {
+    if (!get_file_info(local_name, Heliosinfo)) {
 	Server_errno = EC_Error + SS_IOProc + EG_Broken + EO_Directory;
 #if floppies_available
 	if (floppy_errno) floppy_handler();
@@ -1097,7 +1117,11 @@ Conode *myco;
 	Request_Return(Server_errno, 0L, 0L);
 	return;
       }
-  } else {
+  }
+
+  entry_exists = objdb_lookup(local_name, Heliosinfo);
+
+  if (!local_exists)
     if (entry_exists)
       objdb_remove(local_name);
     Server_errno = EC_Error + SS_IOProc + EG_Unknown + EO_File;
@@ -1109,17 +1133,7 @@ Conode *myco;
     return;
   }
 
-  if (entry_exists) {
-    if ((Heliosinfo->Size != local_info.Size) ||
-	(Heliosinfo->Access != local_info.Access) ||
-	(Heliosinfo->Modified != local_info.Modified)) {
-      Heliosinfo->Size = local_info.Size;
-      Heliosinfo->Access = local_info.Access;
-      Heliosinfo->Modified = local_info.Modified;
-      objdb_update(local_name, Heliosinfo);
-    }
-  } else {
-    get_file_info(local_name, Heliosinfo);
+  if (!entry_exists) {
     Heliosinfo->Account = swap(0L);
     Heliosinfo->DirEntry.Flags = swap(0L);
     if (!strncmp(IOname, "helios/", 7)) {
