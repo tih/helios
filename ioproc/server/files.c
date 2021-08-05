@@ -305,17 +305,17 @@ PRIVATE sqlite3 *HeliosObjDB;
 
 char *ObjDB_PUT_SQL =
   "insert into objinfo (name, account, flags, matrix, key)"
-  " values (%, %, %, %, %);"
+  " values (%, %, %, %, %);";
 char *ObjDB_UPD_SQL =
   "update objinfo"
   " set account = %, flags = %, matrix = %, key = %"
-  " where name = %;"
+  " where name = %;";
 char *ObjDB_GET_SQL =
   "select account, flags, matrix, key from objinfo"
-  " where name = %;"
+  " where name = %;";
 char *ObjDB_DEL_SQL =
   "delete from objinfo"
-  " where name = %;"
+  " where name = %;";
 
 PRIVATE sqlite3_stmt *ObjDB_put;
 PRIVATE sqlite3_stmt *ObjDB_upd;
@@ -1116,12 +1116,12 @@ Conode *myco;
 	Debug (FileIO_Flag, ("failed to get file info for %s", local_name));
 	Request_Return(Server_errno, 0L, 0L);
 	return;
-      }
+    }
   }
 
   entry_exists = objdb_lookup(local_name, Heliosinfo);
 
-  if (!local_exists)
+  if (!local_exists) {
     if (entry_exists)
       objdb_remove(local_name);
     Server_errno = EC_Error + SS_IOProc + EG_Unknown + EO_File;
@@ -1158,6 +1158,7 @@ Conode *myco;
   }
 
   Request_Return(ReplyOK, 0L, (word) sizeof(ObjInfo));
+
 use(myco)
 }
 
