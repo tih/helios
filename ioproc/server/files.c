@@ -294,6 +294,22 @@ extern word   fn(object_isadirectory,(char *));
 
 #endif
 
+/*
+ * We use an sqlite database to store object information for /helios
+ */
+
+#include <sqlite3.h>
+
+int objdb_open(char *);
+void objdb_close(void);
+void objdb_store(char *, ObjInfo *);
+void objdb_update(char *, ObjInfo *);
+int objdb_lookup(char *, ObjInfo *);
+void objdb_remove(char *);
+
+char *HeliosObjDBName;
+int HeliosObjDB;
+
 /**
 *** The following bits deal with name conversion. On entry to any server routine
 *** the global array IOname contains a Helios name such as c/helios/bin/ls,
@@ -576,6 +592,12 @@ void Helios_InitServer(myco)
 Conode *myco;
 { 
   Heliosnode = (Node *) myco;
+  HeliosObjDBName = get_config("helios_objinfodb");
+  if (HeliosObjDBName == (char *) NULL) {
+    HeliosObjDBName = malloc(strlen(Heliosdir) + 12);
+    sprintf(HeliosObjDBName, "%s/%s", Heliosdir, "objinfo.db");
+  }
+  HeliosObjDB = objdb_open(HeliosObjDBName);
 #if (PC || ST)
   if (get_config("Unix_fileio") eq (char *) NULL)
    msdos_flag = Flags_MSdos;
@@ -1106,17 +1128,18 @@ Conode *myco;
 	     DefDirMatrix : DefFileMatrix);
       objdb_store(local_name, Heliosinfo);
     } else {
-      if ((!strncmp(name, Heliosdir, strlen(Heliosdir))) &&
-	  (name[strlen(Heliosdir)] == '/')) {
+      if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
+	  (local_name[strlen(Heliosdir)] == '/')) {
 	Heliosinfo->DirEntry.Matrix = 0L;
       } else {
-      Heliosinfo->DirEntry.Matrix =
-	(Heliosinfo->DirEntry.Type eq Type_Directory) ? ACC_ZZZZ : 0L;
-      if (searchbuffer.st_mode & S_IROTH)
-	Heliosinfo->DirEntry.Matrix |= ACC_RRRR;
-      if (searchbuffer.st_mode & S_IWOTH)
-	Heliosinfo->DirEntry.Matrix |= ACC_WWWW;
-      Heliosinfo->DirEntry.Matrix = swap(Heliosinfo->DirEntry.Matrix);
+	Heliosinfo->DirEntry.Matrix =
+	  (Heliosinfo->DirEntry.Type eq Type_Directory) ? ACC_ZZZZ : 0L;
+	if (searchbuffer.st_mode & S_IROTH)
+	  Heliosinfo->DirEntry.Matrix |= ACC_RRRR;
+	if (searchbuffer.st_mode & S_IWOTH)
+	  Heliosinfo->DirEntry.Matrix |= ACC_WWWW;
+	Heliosinfo->DirEntry.Matrix = swap(Heliosinfo->DirEntry.Matrix);
+      }
     }
   }
 
