@@ -10,6 +10,8 @@ linkobjs = sun/linklib.o minix/linkif.o minix/rawdisk.o
 colibobjs = minix/colib.o
 colib_link = minix/colib.o -ltermcap
 
+sqlite_link = -lsqlite3
+
 # miscellaneous macros
 sys      = /usr/include
 header   = barthdr
@@ -22,7 +24,7 @@ servobjs = server.o files.o devices.o tload.o cofuns.o \
 default : helios.h server # hydra hydramon
 
 server: $(servobjs) $(linkobjs) $(colibobjs)
-	cc -o server $(servobjs) $(linkobjs) $(colib_link)
+	cc -o server $(servobjs) $(linkobjs) $(colib_link) $(sqlite_link)
 
 hydra : sun/hydra.o $(linkobjs)
 	cc -o hydra sun/hydra.o $(linkobjs)
