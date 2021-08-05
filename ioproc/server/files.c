@@ -305,11 +305,11 @@ PRIVATE sqlite3 *HeliosObjDB;
 
 char *ObjDB_PUT =
   "insert into objinfo (name, account, flags, matrix, key)"
-  " values(%, %, %, %, %);";
+  " values(?, ?, ?, ?, ?);";
 
 char *ObjDB_GET =
   "select account, flags, matrix, key from objinfo"
-  " where name = %;";
+  " where name = ?;";
 
 PRIVATE sqlite3_stmt *ObjDB_put, *ObjDB_get;
 
@@ -327,8 +327,8 @@ PRIVATE sqlite3 *objdb_open(char *db) {
 PRIVATE void objdb_close(void) {
 }
 
-PRIVATE void objdb_store(char *path, word *account, word *flags,
-			 Matrix *matrix, word *key) {
+PRIVATE void objdb_store(char *path, word account, word flags,
+			 Matrix matrix, word key) {
 
   sqlite3_reset(ObjDB_put);
 
@@ -1167,8 +1167,8 @@ Conode *myco;
 	DefDirMatrix : DefFileMatrix;
       key = random();
       objdb_store(local_name,
-		  &Heliosinfo->Account, &Heliosinfo->DirEntry.Flags,
-		  &Heliosinfo->DirEntry.Matrix, &key);
+		  Heliosinfo->Account, Heliosinfo->DirEntry.Flags,
+		  Heliosinfo->DirEntry.Matrix, key);
     } else {
       if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
 	  (local_name[strlen(Heliosdir)] == '/')) {
