@@ -335,7 +335,7 @@ PRIVATE void objdb_store(char *path, word account, word flags,
   sqlite3_bind_text(ObjDB_put, 1, path, -1, NULL);
   sqlite3_bind_int(ObjDB_put, 2, account);
   sqlite3_bind_int(ObjDB_put, 3, flags);
-  sqlite3_bind_int64(ObjDB_put, 4, matrix);
+  sqlite3_bind_int(ObjDB_put, 4, matrix);
   sqlite3_bind_int(ObjDB_put, 5, key);
 
   if (sqlite3_step(ObjDB_put) == SQLITE_DONE)
@@ -344,8 +344,8 @@ PRIVATE void objdb_store(char *path, word account, word flags,
     Debug (FileIO_Flag, ("failed to store object %s in database", path));
 }
 
-PRIVATE void objdb_update(char *path, word *account, word *flags,
-			  Matrix *matrix, word *key) {
+PRIVATE void objdb_update(char *path, word account, word flags,
+			  Matrix matrix, word key) {
 }
 
 PRIVATE int objdb_lookup(char *path, word *account, word *flags,
@@ -360,7 +360,7 @@ PRIVATE int objdb_lookup(char *path, word *account, word *flags,
     if (flags)
       *flags = sqlite3_column_int(ObjDB_get, 1);
     if (matrix)
-      *matrix = sqlite3_column_int64(ObjDB_get, 2);
+      *matrix = sqlite3_column_int(ObjDB_get, 2);
     if (key)
       *key = sqlite3_column_int(ObjDB_get, 3);
     Debug (FileIO_Flag, ("object %s fetched from database", path));
@@ -1143,12 +1143,12 @@ Conode *myco;
     }
   }
 
-  entry_exists = objdb_lookup(local_name, &Heliosinfo->Account,
+  entry_exists = objdb_lookup(IOname, &Heliosinfo->Account,
 			      &Heliosinfo->DirEntry.Flags,
 			      &Heliosinfo->DirEntry.Matrix, &key);
   if (!local_exists) {
     if (entry_exists)
-      objdb_remove(local_name);
+      objdb_remove(IOname);
     Server_errno = EC_Error + SS_IOProc + EG_Unknown + EO_File;
 #if floppies_available
     if (floppy_errno) floppy_handler();
@@ -1166,8 +1166,7 @@ Conode *myco;
 	(Heliosinfo->DirEntry.Type eq Type_Directory) ?
 	DefDirMatrix : DefFileMatrix;
       key = random();
-      objdb_store(local_name,
-		  Heliosinfo->Account, Heliosinfo->DirEntry.Flags,
+      objdb_store(IOname, Heliosinfo->Account, Heliosinfo->DirEntry.Flags,
 		  Heliosinfo->DirEntry.Matrix, key);
     } else {
       if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
