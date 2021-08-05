@@ -995,6 +995,12 @@ use(myco)
 *** PC swap() is hash-defined to be a no-op.
 **/
 
+int objdb_open(char *db) {
+}
+
+void objdb_close(void) {
+}
+
 void objdb_store(char *path, ObjInfo *info) {
 }
 
@@ -1007,6 +1013,11 @@ int objdb_lookup(char *path, ObjInfo *info) {
 
 void objdb_remove(char *path) {
 }
+
+#define ACC_VXYZ 0x20100804L
+#define ACC_ZZZZ 0x20202020L
+#define ACC_RRRR 0x01010101L
+#define ACC_WWWW 0x02020202L
 
 void Drive_ObjectInfo(myco)
 Conode *myco;
@@ -1087,7 +1098,26 @@ Conode *myco;
     }
   } else {
     get_file_info(local_name, Heliosinfo);
-    objdb_store(local_name, Heliosinfo);
+    Heliosinfo->Account = swap(0L);
+    Heliosinfo->DirEntry.Flags = swap(0L);
+    if (!strncmp(IOname, "helios/", 7)) {
+      Heliosinfo->DirEntry.Matrix =
+	swap((Heliosinfo->DirEntry.Type eq Type_Directory) ?
+	     DefDirMatrix : DefFileMatrix);
+      objdb_store(local_name, Heliosinfo);
+    } else {
+      if ((!strncmp(name, Heliosdir, strlen(Heliosdir))) &&
+	  (name[strlen(Heliosdir)] == '/')) {
+	Heliosinfo->DirEntry.Matrix = 0L;
+      } else {
+      Heliosinfo->DirEntry.Matrix =
+	(Heliosinfo->DirEntry.Type eq Type_Directory) ? ACC_ZZZZ : 0L;
+      if (searchbuffer.st_mode & S_IROTH)
+	Heliosinfo->DirEntry.Matrix |= ACC_RRRR;
+      if (searchbuffer.st_mode & S_IWOTH)
+	Heliosinfo->DirEntry.Matrix |= ACC_WWWW;
+      Heliosinfo->DirEntry.Matrix = swap(Heliosinfo->DirEntry.Matrix);
+    }
   }
 
   Request_Return(ReplyOK, 0L, (word) sizeof(ObjInfo));
