@@ -738,6 +738,7 @@ static int get_objdb_info(char *ioname, ObjInfo *info) {
 
 static int getcontext(char *ioname, Capability *cap, ObjInfo *info) {
   char *lname;
+  Key key;
 
   lname = malloc(strlen(ioname) + strlen(Heliosdir));
   if (!strncmp(ioname, "helios/", 7))
@@ -750,6 +751,7 @@ static int getcontext(char *ioname, Capability *cap, ObjInfo *info) {
     if (get_file_info(lname, info)) {
       if (!strncmp(ioname, "helios/", 7)) {
 	if (get_objdb_info(ioname, info)) {
+	  objdb_lookup(ioname, NULL, NULL, NULL, &key);
 	  if (checkcap(cap, key)) {
 	    free(lname);
 	    return true;
@@ -757,6 +759,9 @@ static int getcontext(char *ioname, Capability *cap, ObjInfo *info) {
 	}
       } else {
 	cap->Access = info->DirEntry.Matrix & 0xff;
+	if (cap->Access != 0)
+	  return true;
+	return false;
       }
     }
   }
