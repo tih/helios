@@ -2418,12 +2418,12 @@ ObjInfo *Heliosinfo;
 #endif
      default       : type = Type_Device; 
    }
-                          /* we have got the info, now convert and store it */
-  Heliosinfo->DirEntry.Type = swap(type);
-  Heliosinfo->Size      = swap(searchbuffer.st_size);
-  Heliosinfo->Creation  = swap(searchbuffer.st_ctime);
-  Heliosinfo->Access    = swap(searchbuffer.st_atime);
-  Heliosinfo->Modified  = swap(searchbuffer.st_mtime);
+
+  Heliosinfo->DirEntry.Type = type;
+  Heliosinfo->Size = searchbuffer.st_size;
+  Heliosinfo->Creation = searchbuffer.st_ctime;
+  Heliosinfo->Access = searchbuffer.st_atime;
+  Heliosinfo->Modified = searchbuffer.st_mtime;
 
   return(TRUE);
 }

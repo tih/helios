@@ -295,7 +295,7 @@ extern word   fn(object_isadirectory,(char *));
 #endif
 
 /*
- * We use an sqlite database to store object information for /helios
+ * We use an sqlite database to store object information for helios/...
  */
 
 #include <sqlite3.h>
@@ -373,6 +373,166 @@ PRIVATE int objdb_lookup(char *path, word *account, word *flags,
 }
 
 PRIVATE void objdb_remove(char *path) {
+}
+
+/* Support functions for capabilities in the Unix file server */
+
+#define ACC_VXYZ 0x20100804L
+#define ACC_ZZZZ 0x20202020L
+#define ACC_RRRR 0x01010101L
+#define ACC_WWWW 0x02020202L
+
+static int cap_docrypt(Capability *input, Capability *output,
+		       Key key, int encrypt) {
+  byte *in; *out;
+  word c;
+  word size = 7;
+  word salt = size;
+
+  in = &input->Valid[0];
+  out = &output->Valid[0];
+
+  while (size--) {
+    c = *in;
+
+    key &= 0x1fffffff;
+    if (key & 0x10000000)
+      key ^= 0x0040a001;
+
+    c = (key & 0xff) - c;
+
+    if (++salt >= 20857)
+      salt = 0;
+
+    if (encrypt)
+      key = key + key + *in + salt;
+    else
+      key = key + key + (c&0xff) + salt;
+
+    *out++ = c;
+  }
+}
+
+static void cap_encrypt(Capability *in, Capability *out, Key key) {
+  cap_docrypt(in, out, key, 1);
+}
+
+static void cap_decrypt(Capability *in, Capability *out, Key key) {
+  cap_docrypt(in, out, key, 0);
+}
+
+static void makecap(Capability *cap, Key key) {
+  int i;
+  Capability c;
+  byte check = (byte)(key>>16)&0xff;
+
+  for (i = 0; i < 7; i++)
+    c.Valid[i] = check;
+  c.Valid[0] = cap->Access;
+  c.Valid[3] = cap->Access;
+
+  cap_encrypt(&c, cap, key);
+}
+
+static int checkcap(Capability *cap, Key key) {
+  int i;
+  Capability c;
+  byte check = (byte)(key>>16)&0xff;
+
+  cap_decrypt(cap, &c, key);
+
+  for (i = 0; i < 7; i++) {
+    if (i == 0 || i == 3)
+      continue;
+    if (c.Valid[i] != check)
+      break;
+  }
+  if (i != 7)
+    return false;
+
+  if (c.Valid[0] != c.Valid[3])
+    return false;
+
+  cap->Access &= c.Valid[0];
+
+  return true;
+}
+
+static int get_objdb_info(char *ioname, ObjInfo *info) {
+
+  if (!objdb_lookup(IOname, &info->Account, &info->DirEntry.Flags,
+		    &info->DirEntry.Matrix, &key)) {
+    Heliosinfo->Account = 0L;
+    Heliosinfo->DirEntry.Flags = 0L;
+    Heliosinfo->DirEntry.Matrix =
+      (Heliosinfo->DirEntry.Type eq Type_Directory) ?
+      DefDirMatrix : DefFileMatrix;
+    key = random();
+    objdb_store(IOname, Heliosinfo->Account, Heliosinfo->DirEntry.Flags,
+		Heliosinfo->DirEntry.Matrix, key);
+    return true;
+  } else {
+    if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
+	(local_name[strlen(Heliosdir)] == '/')) {
+      Heliosinfo->DirEntry.Matrix = 0L;
+    } else {
+      Heliosinfo->DirEntry.Matrix =
+	(Heliosinfo->DirEntry.Type eq Type_Directory) ? ACC_ZZZZ : 0L;
+      if (searchbuffer.st_mode & S_IROTH)
+	Heliosinfo->DirEntry.Matrix |= ACC_RRRR;
+      if (searchbuffer.st_mode & S_IWOTH)
+	Heliosinfo->DirEntry.Matrix |= ACC_WWWW;
+    }
+    return false;
+  }
+}
+
+/*
+  IOCCommon *control = mcb->Control;
+  byte *data = mcb->Data;
+*/
+
+static int getcontext(char *ioname, Capability *cap, ObjInfo *info) {
+  char *lname;
+
+  lname = malloc(strlen(ioname) + strlen(Heliosdir));
+  if (!strncmp(ioname, "helios/", 7))
+    strcpy(lname, Heliosdir);
+  else
+    strcpy(lname, "/");
+  pathcat(lname, strchr(ioname, '/'));
+
+  if (object_exists(lname)) {
+    if (get_file_info(lname, info)) {
+      if (!strncmp(ioname, "helios/", 7)) {
+	if (get_objdb_info(ioname, info)) {
+	  if (checkcap(cap, key)) {
+	    free(lname);
+	    return true;
+	  }
+	}
+      } else {
+	cap->Access = info->DirEntry.Matrix & 0xff;
+      }
+    }
+  }
+  free(lname);
+  return false;
+}
+
+static int gettarget() {
+}
+
+static void swap_objinfo(ObjInfo *info) {
+
+  info->Account = swap(info->Account);
+  info->Size = swap(info->Size);
+  info->Creation = swap(info->Creation);
+  info->Access = swap(info->Access);
+  info->Modified = swap(info->Modified);
+  info->DirEntry.Type = swap(info->DirEntry.Type);
+  info->DirEntry.Flags = swap(info->DirEntry.Flags);
+  info->DirEntry.Matrix = swap(info->DirEntry.Matrix);
 }
 
 /**
@@ -659,8 +819,8 @@ Conode *myco;
   Heliosnode = (Node *) myco;
   HeliosObjDBName = get_config("helios_objinfodb");
   if (HeliosObjDBName == (char *) NULL) {
-    HeliosObjDBName = malloc(strlen(Heliosdir) + 12);
-    sprintf(HeliosObjDBName, "%s/%s", Heliosdir, "objinfo.db");
+    HeliosObjDBName = malloc(strlen(Heliosdir) + 15);
+    sprintf(HeliosObjDBName, "%s/../%s", Heliosdir, "objinfo.db");
   }
   HeliosObjDB = objdb_open(HeliosObjDBName);
 #if (PC || ST)
@@ -1082,15 +1242,11 @@ use(myco)
 *** PC swap() is hash-defined to be a no-op.
 **/
 
-#define ACC_VXYZ 0x20100804L
-#define ACC_ZZZZ 0x20202020L
-#define ACC_RRRR 0x01010101L
-#define ACC_WWWW 0x02020202L
-
 void Drive_ObjectInfo(myco)
 Conode *myco;
 {
-  int local_exists, entry_exists, key;
+  int local_exists, entry_exists;
+  Key key;
   register ObjInfo *Heliosinfo = (ObjInfo *) mcb->Data;
 
   if (!strcmp(IOname, "helios"))    /* Check for an ObjInfo on /helios */
@@ -1143,9 +1299,8 @@ Conode *myco;
     }
   }
 
-  entry_exists = objdb_lookup(IOname, &Heliosinfo->Account,
-			      &Heliosinfo->DirEntry.Flags,
-			      &Heliosinfo->DirEntry.Matrix, &key);
+  entry_exists = get_objdb_info(IOname, Heliosinfo);
+
   if (!local_exists) {
     if (entry_exists)
       objdb_remove(IOname);
@@ -1158,34 +1313,7 @@ Conode *myco;
     return;
   }
 
-  if (!entry_exists) {
-    Heliosinfo->Account = 0L;
-    Heliosinfo->DirEntry.Flags = 0L;
-    if (!strncmp(IOname, "helios/", 7)) {
-      Heliosinfo->DirEntry.Matrix =
-	(Heliosinfo->DirEntry.Type eq Type_Directory) ?
-	DefDirMatrix : DefFileMatrix;
-      key = random();
-      objdb_store(IOname, Heliosinfo->Account, Heliosinfo->DirEntry.Flags,
-		  Heliosinfo->DirEntry.Matrix, key);
-    } else {
-      if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
-	  (local_name[strlen(Heliosdir)] == '/')) {
-	Heliosinfo->DirEntry.Matrix = 0L;
-      } else {
-	Heliosinfo->DirEntry.Matrix =
-	  (Heliosinfo->DirEntry.Type eq Type_Directory) ? ACC_ZZZZ : 0L;
-	if (searchbuffer.st_mode & S_IROTH)
-	  Heliosinfo->DirEntry.Matrix |= ACC_RRRR;
-	if (searchbuffer.st_mode & S_IWOTH)
-	  Heliosinfo->DirEntry.Matrix |= ACC_WWWW;
-      }
-    }
-  }
-
-  Heliosinfo->Account = swap(Heliosinfo->Account);
-  Heliosinfo->DirEntry.Flags = swap(Heliosinfo->DirEntry.Flags);
-  Heliosinfo->DirEntry.Matrix = swap(Heliosinfo->DirEntry.Matrix);
+  swap_objinfo(Heliosinfo);
 
   Request_Return(ReplyOK, 0L, (word) sizeof(ObjInfo));
 
