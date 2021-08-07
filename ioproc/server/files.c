@@ -717,6 +717,7 @@ static void get_objdb_info(char *ioname, ObjInfo *info) {
   } else {
     if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
 	(local_name[strlen(Heliosdir)] == '/')) {
+Debug (FileIO_Flag, ("bailing on %s", local_name));
       info->DirEntry.Matrix = 0L;
     } else {
       info->DirEntry.Matrix =
