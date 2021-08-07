@@ -704,29 +704,26 @@ static int checkcap(Capability *cap, Key key) {
 static void get_objdb_info(char *ioname, ObjInfo *info) {
   Key key;
 
-  if (!objdb_lookup(IOname, &info->Account, &info->DirEntry.Flags,
-		    &info->DirEntry.Matrix, &key)) {
-    info->Account = 0L;
-    info->DirEntry.Flags = 0L;
-    info->DirEntry.Matrix =
-      (info->DirEntry.Type eq Type_Directory) ?
-      DefDirMatrix : DefFileMatrix;
-    key = random();
-    objdb_store(IOname, info->Account, info->DirEntry.Flags,
-		info->DirEntry.Matrix, key);
-  } else {
-    if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
-	(local_name[strlen(Heliosdir)] == '/')) {
-Debug (FileIO_Flag, ("bailing on %s", local_name));
-      info->DirEntry.Matrix = 0L;
-    } else {
+  if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
+      (local_name[strlen(Heliosdir)] == '/')) {
+    if (!objdb_lookup(IOname, &info->Account, &info->DirEntry.Flags,
+		      &info->DirEntry.Matrix, &key)) {
+      info->Account = 0L;
+      info->DirEntry.Flags = 0L;
       info->DirEntry.Matrix =
-	(info->DirEntry.Type eq Type_Directory) ? ACC_ZZZZ : 0L;
-      if (searchbuffer.st_mode & S_IROTH)
-	info->DirEntry.Matrix |= ACC_RRRR;
-      if (searchbuffer.st_mode & S_IWOTH)
-	info->DirEntry.Matrix |= ACC_WWWW;
+	(info->DirEntry.Type eq Type_Directory) ?
+	DefDirMatrix : DefFileMatrix;
+      key = random();
+      objdb_store(IOname, info->Account, info->DirEntry.Flags,
+		  info->DirEntry.Matrix, key);
     }
+  } else {
+    info->DirEntry.Matrix =
+      (info->DirEntry.Type eq Type_Directory) ? ACC_ZZZZ : 0L;
+    if (searchbuffer.st_mode & S_IROTH)
+      info->DirEntry.Matrix |= ACC_RRRR;
+    if (searchbuffer.st_mode & S_IWOTH)
+      info->DirEntry.Matrix |= ACC_WWWW;
   }
 }
 
