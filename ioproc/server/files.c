@@ -717,6 +717,8 @@ static void get_objdb_info(char *ioname, ObjInfo *info) {
 		  info->DirEntry.Matrix, key);
     }
   } else {
+    info->Account = 0L;
+    info->DirEntry.Flags = 0L;
     info->DirEntry.Matrix =
       (info->DirEntry.Type eq Type_Directory) ? ACC_ZZZZ : 0L;
     if (searchbuffer.st_mode & S_IROTH)
