@@ -701,7 +701,7 @@ static int checkcap(Capability *cap, Key key) {
   return true;
 }
 
-static int get_objdb_info(char *ioname, ObjInfo *info) {
+static void get_objdb_info(char *ioname, ObjInfo *info) {
   Key key;
 
   if (!objdb_lookup(IOname, &info->Account, &info->DirEntry.Flags,
@@ -714,7 +714,6 @@ static int get_objdb_info(char *ioname, ObjInfo *info) {
     key = random();
     objdb_store(IOname, info->Account, info->DirEntry.Flags,
 		info->DirEntry.Matrix, key);
-    return true;
   } else {
     if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
 	(local_name[strlen(Heliosdir)] == '/')) {
@@ -727,7 +726,6 @@ static int get_objdb_info(char *ioname, ObjInfo *info) {
       if (searchbuffer.st_mode & S_IWOTH)
 	info->DirEntry.Matrix |= ACC_WWWW;
     }
-    return false;
   }
 }
 
@@ -750,12 +748,11 @@ static int getcontext(char *ioname, Capability *cap, ObjInfo *info) {
   if (object_exists(lname)) {
     if (get_file_info(lname, info)) {
       if (!strncmp(ioname, "helios/", 7)) {
-	if (get_objdb_info(ioname, info)) {
-	  objdb_lookup(ioname, NULL, NULL, NULL, &key);
-	  if (checkcap(cap, key)) {
-	    free(lname);
-	    return true;
-	  }
+	get_objdb_info(ioname, info);
+	objdb_lookup(ioname, NULL, NULL, NULL, &key);
+	if (checkcap(cap, key)) {
+	  free(lname);
+	  return true;
 	}
       } else {
 	cap->Access = info->DirEntry.Matrix & 0xff;
@@ -1252,7 +1249,7 @@ use(myco)
 void Drive_ObjectInfo(myco)
 Conode *myco;
 {
-  int local_exists, entry_exists;
+  int local_exists;
   Key key;
   register ObjInfo *Heliosinfo = (ObjInfo *) mcb->Data;
 
@@ -1304,13 +1301,8 @@ Conode *myco;
 	Request_Return(Server_errno, 0L, 0L);
 	return;
     }
-  }
-
-  entry_exists = get_objdb_info(IOname, Heliosinfo);
-
-  if (!local_exists) {
-    if (entry_exists)
-      objdb_remove(IOname);
+  } else {
+    objdb_remove(IOname);
     Server_errno = EC_Error + SS_IOProc + EG_Unknown + EO_File;
 #if floppies_available
     if (floppy_errno) floppy_handler();
@@ -1319,6 +1311,8 @@ Conode *myco;
     Request_Return(Server_errno, 0L, 0L);
     return;
   }
+
+  get_objdb_info(IOname, Heliosinfo);
 
   swap_objinfo(Heliosinfo);
 
