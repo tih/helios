@@ -2717,7 +2717,7 @@ char *name;
 
      while (*source ne '/' && *source ne '\0') *dest++ = *source++;
      if (*source ne '\0') { *dest++ = '/'; source++; entries++; }
-     while (*source eq '/') { source++ };
+     while (*source eq '/') { source++; };
    }
 
   *dest = '\0';
