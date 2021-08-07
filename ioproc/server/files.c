@@ -704,7 +704,7 @@ static int checkcap(Capability *cap, Key key) {
 static void get_objdb_info(char *ioname, ObjInfo *info) {
   Key key;
 
-  if (!strncmp(ioname, "helios/", 7))
+  if (!strncmp(ioname, "helios/", 7)) {
     if (!objdb_lookup(ioname, &info->Account, &info->DirEntry.Flags,
 		      &info->DirEntry.Matrix, &key)) {
       info->Account = 0L;
