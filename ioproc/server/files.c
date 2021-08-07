@@ -704,9 +704,8 @@ static int checkcap(Capability *cap, Key key) {
 static void get_objdb_info(char *ioname, ObjInfo *info) {
   Key key;
 
-  if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
-      (local_name[strlen(Heliosdir)] == '/')) {
-    if (!objdb_lookup(IOname, &info->Account, &info->DirEntry.Flags,
+  if (!strncmp(ioname, "helios/", 7))
+    if (!objdb_lookup(ioname, &info->Account, &info->DirEntry.Flags,
 		      &info->DirEntry.Matrix, &key)) {
       info->Account = 0L;
       info->DirEntry.Flags = 0L;
@@ -714,7 +713,7 @@ static void get_objdb_info(char *ioname, ObjInfo *info) {
 	(info->DirEntry.Type eq Type_Directory) ?
 	DefDirMatrix : DefFileMatrix;
       key = random();
-      objdb_store(IOname, info->Account, info->DirEntry.Flags,
+      objdb_store(ioname, info->Account, info->DirEntry.Flags,
 		  info->DirEntry.Matrix, key);
     }
   } else {
