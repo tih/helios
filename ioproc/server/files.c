@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------
---                                                                      --
+--                                                                     --
 --         H E L I O S   I N P U T / O U T P U T   S E R V E R          --
 --         ---------------------------------------------------          --
 --                                                                      --
@@ -294,247 +294,6 @@ extern word   fn(object_isadirectory,(char *));
 
 #endif
 
-/*
- * We use an sqlite database to store object information for helios/...
- */
-
-#include <sqlite3.h>
-
-PRIVATE char *HeliosObjDBName;
-PRIVATE sqlite3 *HeliosObjDB;
-
-char *ObjDB_PUT =
-  "insert into objinfo (name, account, flags, matrix, key)"
-  " values(?, ?, ?, ?, ?);";
-
-char *ObjDB_GET =
-  "select account, flags, matrix, key from objinfo"
-  " where name = ?;";
-
-PRIVATE sqlite3_stmt *ObjDB_put, *ObjDB_get;
-
-PRIVATE sqlite3 *objdb_open(char *db) {
-  int ret;
-  sqlite3 *handle;
-  ret = sqlite3_open_v2(db, &handle, SQLITE_OPEN_READWRITE, NULL);
-  if (ret == SQLITE_OK) {
-    sqlite3_prepare_v2(handle, ObjDB_PUT, -1, &ObjDB_put, NULL);
-    sqlite3_prepare_v2(handle, ObjDB_GET, -1, &ObjDB_get, NULL);
-    HeliosObjDB = handle;
-  }
-}
-
-PRIVATE void objdb_close(void) {
-}
-
-PRIVATE void objdb_store(char *path, word account, word flags,
-			 Matrix matrix, word key) {
-
-  sqlite3_reset(ObjDB_put);
-
-  sqlite3_bind_text(ObjDB_put, 1, path, -1, NULL);
-  sqlite3_bind_int(ObjDB_put, 2, account);
-  sqlite3_bind_int(ObjDB_put, 3, flags);
-  sqlite3_bind_int(ObjDB_put, 4, matrix);
-  sqlite3_bind_int(ObjDB_put, 5, key);
-
-  if (sqlite3_step(ObjDB_put) == SQLITE_DONE)
-    Debug (FileIO_Flag, ("object %s stored in database", path));
-  else
-    Debug (FileIO_Flag, ("failed to store object %s in database", path));
-}
-
-PRIVATE void objdb_update(char *path, word account, word flags,
-			  Matrix matrix, word key) {
-}
-
-PRIVATE int objdb_lookup(char *path, word *account, word *flags,
-			  Matrix *matrix, word *key) {
-
-  sqlite3_reset(ObjDB_get);
-
-  sqlite3_bind_text(ObjDB_get, 1, path, -1, NULL);
-  if (sqlite3_step(ObjDB_get) == SQLITE_ROW) {
-    if (account)
-      *account = sqlite3_column_int(ObjDB_get, 0);
-    if (flags)
-      *flags = sqlite3_column_int(ObjDB_get, 1);
-    if (matrix)
-      *matrix = sqlite3_column_int(ObjDB_get, 2);
-    if (key)
-      *key = sqlite3_column_int(ObjDB_get, 3);
-    Debug (FileIO_Flag, ("object %s fetched from database", path));
-    return 1;
-  }
-
-  Debug (FileIO_Flag, ("failed to fetch object %s from database", path));
-
-  return 0;
-}
-
-PRIVATE void objdb_remove(char *path) {
-}
-
-/* Support functions for capabilities in the Unix file server */
-
-#define ACC_VXYZ 0x20100804L
-#define ACC_ZZZZ 0x20202020L
-#define ACC_RRRR 0x01010101L
-#define ACC_WWWW 0x02020202L
-
-static int cap_docrypt(Capability *input, Capability *output,
-		       Key key, int encrypt) {
-  byte *in; *out;
-  word c;
-  word size = 7;
-  word salt = size;
-
-  in = &input->Valid[0];
-  out = &output->Valid[0];
-
-  while (size--) {
-    c = *in;
-
-    key &= 0x1fffffff;
-    if (key & 0x10000000)
-      key ^= 0x0040a001;
-
-    c = (key & 0xff) - c;
-
-    if (++salt >= 20857)
-      salt = 0;
-
-    if (encrypt)
-      key = key + key + *in + salt;
-    else
-      key = key + key + (c&0xff) + salt;
-
-    *out++ = c;
-  }
-}
-
-static void cap_encrypt(Capability *in, Capability *out, Key key) {
-  cap_docrypt(in, out, key, 1);
-}
-
-static void cap_decrypt(Capability *in, Capability *out, Key key) {
-  cap_docrypt(in, out, key, 0);
-}
-
-static void makecap(Capability *cap, Key key) {
-  int i;
-  Capability c;
-  byte check = (byte)(key>>16)&0xff;
-
-  for (i = 0; i < 7; i++)
-    c.Valid[i] = check;
-  c.Valid[0] = cap->Access;
-  c.Valid[3] = cap->Access;
-
-  cap_encrypt(&c, cap, key);
-}
-
-static int checkcap(Capability *cap, Key key) {
-  int i;
-  Capability c;
-  byte check = (byte)(key>>16)&0xff;
-
-  cap_decrypt(cap, &c, key);
-
-  for (i = 0; i < 7; i++) {
-    if (i == 0 || i == 3)
-      continue;
-    if (c.Valid[i] != check)
-      break;
-  }
-  if (i != 7)
-    return false;
-
-  if (c.Valid[0] != c.Valid[3])
-    return false;
-
-  cap->Access &= c.Valid[0];
-
-  return true;
-}
-
-static int get_objdb_info(char *ioname, ObjInfo *info) {
-
-  if (!objdb_lookup(IOname, &info->Account, &info->DirEntry.Flags,
-		    &info->DirEntry.Matrix, &key)) {
-    Heliosinfo->Account = 0L;
-    Heliosinfo->DirEntry.Flags = 0L;
-    Heliosinfo->DirEntry.Matrix =
-      (Heliosinfo->DirEntry.Type eq Type_Directory) ?
-      DefDirMatrix : DefFileMatrix;
-    key = random();
-    objdb_store(IOname, Heliosinfo->Account, Heliosinfo->DirEntry.Flags,
-		Heliosinfo->DirEntry.Matrix, key);
-    return true;
-  } else {
-    if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
-	(local_name[strlen(Heliosdir)] == '/')) {
-      Heliosinfo->DirEntry.Matrix = 0L;
-    } else {
-      Heliosinfo->DirEntry.Matrix =
-	(Heliosinfo->DirEntry.Type eq Type_Directory) ? ACC_ZZZZ : 0L;
-      if (searchbuffer.st_mode & S_IROTH)
-	Heliosinfo->DirEntry.Matrix |= ACC_RRRR;
-      if (searchbuffer.st_mode & S_IWOTH)
-	Heliosinfo->DirEntry.Matrix |= ACC_WWWW;
-    }
-    return false;
-  }
-}
-
-/*
-  IOCCommon *control = mcb->Control;
-  byte *data = mcb->Data;
-*/
-
-static int getcontext(char *ioname, Capability *cap, ObjInfo *info) {
-  char *lname;
-
-  lname = malloc(strlen(ioname) + strlen(Heliosdir));
-  if (!strncmp(ioname, "helios/", 7))
-    strcpy(lname, Heliosdir);
-  else
-    strcpy(lname, "/");
-  pathcat(lname, strchr(ioname, '/'));
-
-  if (object_exists(lname)) {
-    if (get_file_info(lname, info)) {
-      if (!strncmp(ioname, "helios/", 7)) {
-	if (get_objdb_info(ioname, info)) {
-	  if (checkcap(cap, key)) {
-	    free(lname);
-	    return true;
-	  }
-	}
-      } else {
-	cap->Access = info->DirEntry.Matrix & 0xff;
-      }
-    }
-  }
-  free(lname);
-  return false;
-}
-
-static int gettarget() {
-}
-
-static void swap_objinfo(ObjInfo *info) {
-
-  info->Account = swap(info->Account);
-  info->Size = swap(info->Size);
-  info->Creation = swap(info->Creation);
-  info->Access = swap(info->Access);
-  info->Modified = swap(info->Modified);
-  info->DirEntry.Type = swap(info->DirEntry.Type);
-  info->DirEntry.Flags = swap(info->DirEntry.Flags);
-  info->DirEntry.Matrix = swap(info->DirEntry.Matrix);
-}
-
 /**
 *** The following bits deal with name conversion. On entry to any server routine
 *** the global array IOname contains a Helios name such as c/helios/bin/ls,
@@ -776,6 +535,249 @@ void floppy_handler()
   floppy_errno = 0;
 }
 #endif
+
+/*
+ * We use an sqlite database to store object information for helios/...
+ */
+
+#include <sqlite3.h>
+
+PRIVATE char *HeliosObjDBName;
+PRIVATE sqlite3 *HeliosObjDB;
+
+char *ObjDB_PUT =
+  "insert into objinfo (name, account, flags, matrix, key)"
+  " values(?, ?, ?, ?, ?);";
+
+char *ObjDB_GET =
+  "select account, flags, matrix, key from objinfo"
+  " where name = ?;";
+
+PRIVATE sqlite3_stmt *ObjDB_put, *ObjDB_get;
+
+PRIVATE sqlite3 *objdb_open(char *db) {
+  int ret;
+  sqlite3 *handle;
+  ret = sqlite3_open_v2(db, &handle, SQLITE_OPEN_READWRITE, NULL);
+  if (ret == SQLITE_OK) {
+    sqlite3_prepare_v2(handle, ObjDB_PUT, -1, &ObjDB_put, NULL);
+    sqlite3_prepare_v2(handle, ObjDB_GET, -1, &ObjDB_get, NULL);
+    return handle;
+  }
+  return 0;
+}
+
+PRIVATE void objdb_close(void) {
+}
+
+PRIVATE void objdb_store(char *path, word account, word flags,
+			 Matrix matrix, word key) {
+
+  sqlite3_reset(ObjDB_put);
+
+  sqlite3_bind_text(ObjDB_put, 1, path, -1, NULL);
+  sqlite3_bind_int(ObjDB_put, 2, account);
+  sqlite3_bind_int(ObjDB_put, 3, flags);
+  sqlite3_bind_int(ObjDB_put, 4, matrix);
+  sqlite3_bind_int(ObjDB_put, 5, key);
+
+  if (sqlite3_step(ObjDB_put) == SQLITE_DONE)
+    Debug (FileIO_Flag, ("object %s stored in database", path));
+  else
+    Debug (FileIO_Flag, ("failed to store object %s in database", path));
+}
+
+PRIVATE void objdb_update(char *path, word account, word flags,
+			  Matrix matrix, word key) {
+}
+
+PRIVATE int objdb_lookup(char *path, word *account, word *flags,
+			  Matrix *matrix, word *key) {
+
+  sqlite3_reset(ObjDB_get);
+
+  sqlite3_bind_text(ObjDB_get, 1, path, -1, NULL);
+  if (sqlite3_step(ObjDB_get) == SQLITE_ROW) {
+    if (account)
+      *account = sqlite3_column_int(ObjDB_get, 0);
+    if (flags)
+      *flags = sqlite3_column_int(ObjDB_get, 1);
+    if (matrix)
+      *matrix = sqlite3_column_int(ObjDB_get, 2);
+    if (key)
+      *key = sqlite3_column_int(ObjDB_get, 3);
+    Debug (FileIO_Flag, ("object %s fetched from database", path));
+    return 1;
+  }
+
+  Debug (FileIO_Flag, ("failed to fetch object %s from database", path));
+
+  return 0;
+}
+
+PRIVATE void objdb_remove(char *path) {
+}
+
+/* Support functions for capabilities in the Unix file server */
+
+#define ACC_VXYZ 0x20100804L
+#define ACC_ZZZZ 0x20202020L
+#define ACC_RRRR 0x01010101L
+#define ACC_WWWW 0x02020202L
+
+static int cap_docrypt(Capability *input, Capability *output,
+		       Key key, int encrypt) {
+  byte *in, *out;
+  word c;
+  word size = 7;
+  word salt = size;
+
+  in = &input->Valid[0];
+  out = &output->Valid[0];
+
+  while (size--) {
+    c = *in;
+
+    key &= 0x1fffffff;
+    if (key & 0x10000000)
+      key ^= 0x0040a001;
+
+    c = (key & 0xff) - c;
+
+    if (++salt >= 20857)
+      salt = 0;
+
+    if (encrypt)
+      key = key + key + *in + salt;
+    else
+      key = key + key + (c&0xff) + salt;
+
+    *out++ = c;
+  }
+}
+
+static void cap_encrypt(Capability *in, Capability *out, Key key) {
+  cap_docrypt(in, out, key, 1);
+}
+
+static void cap_decrypt(Capability *in, Capability *out, Key key) {
+  cap_docrypt(in, out, key, 0);
+}
+
+static void makecap(Capability *cap, Key key) {
+  int i;
+  Capability c;
+  byte check = (byte)(key>>16)&0xff;
+
+  for (i = 0; i < 7; i++)
+    c.Valid[i] = check;
+  c.Valid[0] = cap->Access;
+  c.Valid[3] = cap->Access;
+
+  cap_encrypt(&c, cap, key);
+}
+
+static int checkcap(Capability *cap, Key key) {
+  int i;
+  Capability c;
+  byte check = (byte)(key>>16)&0xff;
+
+  cap_decrypt(cap, &c, key);
+
+  for (i = 0; i < 7; i++) {
+    if (i == 0 || i == 3)
+      continue;
+    if (c.Valid[i] != check)
+      break;
+  }
+  if (i != 7)
+    return false;
+
+  if (c.Valid[0] != c.Valid[3])
+    return false;
+
+  cap->Access &= c.Valid[0];
+
+  return true;
+}
+
+static int get_objdb_info(char *ioname, ObjInfo *info) {
+  Key key;
+
+  if (!objdb_lookup(IOname, &info->Account, &info->DirEntry.Flags,
+		    &info->DirEntry.Matrix, &key)) {
+    info->Account = 0L;
+    info->DirEntry.Flags = 0L;
+    info->DirEntry.Matrix =
+      (info->DirEntry.Type eq Type_Directory) ?
+      DefDirMatrix : DefFileMatrix;
+    key = random();
+    objdb_store(IOname, info->Account, info->DirEntry.Flags,
+		info->DirEntry.Matrix, key);
+    return true;
+  } else {
+    if ((!strncmp(local_name, Heliosdir, strlen(Heliosdir))) &&
+	(local_name[strlen(Heliosdir)] == '/')) {
+      info->DirEntry.Matrix = 0L;
+    } else {
+      info->DirEntry.Matrix =
+	(info->DirEntry.Type eq Type_Directory) ? ACC_ZZZZ : 0L;
+      if (searchbuffer.st_mode & S_IROTH)
+	info->DirEntry.Matrix |= ACC_RRRR;
+      if (searchbuffer.st_mode & S_IWOTH)
+	info->DirEntry.Matrix |= ACC_WWWW;
+    }
+    return false;
+  }
+}
+
+/*
+  IOCCommon *control = mcb->Control;
+  byte *data = mcb->Data;
+*/
+
+static int getcontext(char *ioname, Capability *cap, ObjInfo *info) {
+  char *lname;
+
+  lname = malloc(strlen(ioname) + strlen(Heliosdir));
+  if (!strncmp(ioname, "helios/", 7))
+    strcpy(lname, Heliosdir);
+  else
+    strcpy(lname, "/");
+  pathcat(lname, strchr(ioname, '/'));
+
+  if (object_exists(lname)) {
+    if (get_file_info(lname, info)) {
+      if (!strncmp(ioname, "helios/", 7)) {
+	if (get_objdb_info(ioname, info)) {
+	  if (checkcap(cap, key)) {
+	    free(lname);
+	    return true;
+	  }
+	}
+      } else {
+	cap->Access = info->DirEntry.Matrix & 0xff;
+      }
+    }
+  }
+  free(lname);
+  return false;
+}
+
+static int gettarget() {
+}
+
+static void swap_objinfo(ObjInfo *info) {
+
+  info->Account = swap(info->Account);
+  info->Size = swap(info->Size);
+  info->Creation = swap(info->Creation);
+  info->Access = swap(info->Access);
+  info->Modified = swap(info->Modified);
+  info->DirEntry.Type = swap(info->DirEntry.Type);
+  info->DirEntry.Flags = swap(info->DirEntry.Flags);
+  info->DirEntry.Matrix = swap(info->DirEntry.Matrix);
+}
 
 /**
 *** This is used to remember the parent i.e. drive coroutine when opening
