@@ -891,14 +891,14 @@ Conode *myco;
   get_objdb_info(IOname, &info);
   objdb_lookup(IOname, NULL, NULL, NULL, &key);
   if (object_isadirectory(local_name))
-    c.Access = AccMask_V;
-  c.Access |= AccMask_R | AccMask_W;
-  makecap(&c, key);
+    cap.Access = AccMask_V;
+  cap.Access |= AccMask_R | AccMask_W;
+  makecap(&cap, key);
                                         /* it exists, dir or file ? */
   if (object_isadirectory(local_name))
-    temp = FormOpenReply(Type_Directory, 0l, &c);
+    temp = FormOpenReply(Type_Directory, 0l, &cap);
   else
-    temp = FormOpenReply(Type_File, 0l, &c);
+    temp = FormOpenReply(Type_File, 0l, &cap);
 
   Request_Return(ReplyOK, open_reply, temp);
 
