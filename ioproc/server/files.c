@@ -723,15 +723,20 @@ static void get_objdb_info(char *ioname, ObjInfo *info) {
   } else {
     info->Account = 0L;
     info->DirEntry.Flags = 0L;
-    info->DirEntry.Matrix =
-      (info->DirEntry.Type eq Type_Directory) ? ACC_ZZZZ : 0L;
-    if (searchbuffer.st_mode & S_IROTH)
-      info->DirEntry.Matrix |= ACC_RRRR;
-    if (searchbuffer.st_mode & S_IWOTH)
-      info->DirEntry.Matrix |= ACC_WWWW;
-    if (info->DirEntry.Type eq Type_File)
-      if (searchbuffer.st_mode & S_IXOTH)
-	info->DirEntry.Matrix |= ACC_EEEE;
+    if (!strncmp(local_name, Heliosdir, strlen(Heliosdir)) &&
+	local_name[strlen(Heliosdir)] == '/') {
+      info->DirEntry.Matrix = 0L;
+    } else {
+      info->DirEntry.Matrix =
+	(info->DirEntry.Type eq Type_Directory) ? ACC_ZZZZ : 0L;
+      if (searchbuffer.st_mode & S_IROTH)
+	info->DirEntry.Matrix |= ACC_RRRR;
+      if (searchbuffer.st_mode & S_IWOTH)
+	info->DirEntry.Matrix |= ACC_WWWW;
+      if (info->DirEntry.Type eq Type_File)
+	if (searchbuffer.st_mode & S_IXOTH)
+	  info->DirEntry.Matrix |= ACC_EEEE;
+    }
   }
 }
 
