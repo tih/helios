@@ -2781,7 +2781,7 @@ Capability *capability;
   reply->Flags        = flags;
 
   if (capability) {
-    memcpy(&(reply->Access[0]), capability, sizeof Capability);
+    memcpy(&(reply->Access[0]), capability, sizeof(Capability));
   } else {
     if (type eq Type_File)
       { reply->Access[0] = (byte) 
