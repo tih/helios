@@ -624,6 +624,7 @@ PRIVATE void objdb_remove(char *path) {
 #define ACC_ZZZZ 0x20202020L
 #define ACC_RRRR 0x01010101L
 #define ACC_WWWW 0x02020202L
+#define ACC_EEEE 0x04040404L
 
 static int cap_docrypt(Capability *input, Capability *output,
 		       Key key, int encrypt) {
@@ -712,6 +713,9 @@ static void get_objdb_info(char *ioname, ObjInfo *info) {
       info->DirEntry.Matrix =
 	(info->DirEntry.Type eq Type_Directory) ?
 	DefDirMatrix : DefFileMatrix;
+      if (info->DirEntry.Type eq Type_File)
+	if (searchbuffer.st_mode & S_IXOTH)
+	  info->DirEntry.Matrix |= ACC_EEEE;
       key = random();
       objdb_store(ioname, info->Account, info->DirEntry.Flags,
 		  info->DirEntry.Matrix, key);
@@ -725,6 +729,9 @@ static void get_objdb_info(char *ioname, ObjInfo *info) {
       info->DirEntry.Matrix |= ACC_RRRR;
     if (searchbuffer.st_mode & S_IWOTH)
       info->DirEntry.Matrix |= ACC_WWWW;
+    if (info->DirEntry.Type eq Type_File)
+      if (searchbuffer.st_mode & S_IXOTH)
+	info->DirEntry.Matrix |= ACC_EEEE;
   }
 }
 
