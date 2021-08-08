@@ -2648,7 +2648,25 @@ word convert_name()
       return (false);
     }
 
-   Debug(Name_Flag, ("Context %s, name %s, rest %s", (context ne -1) ? &(data[context]) : "NULL", (name ne -1) ? &(data[name]) : "NULL", (next ne -1) ? &(data[next]) : "NULL" ) );
+  Debug(Name_Flag, ("Context %s, name %s, rest %s", (context ne -1) ? &(data[context]) : "NULL", (name ne -1) ? &(data[name]) : "NULL", (next ne -1) ? &(data[next]) : "NULL" ) );
+
+  if (context != -1) {
+    memcpy(&IOcapability, &control[Cap1_off], sizeof(Capability));
+    if ((name == -1) ||
+	((name > context) && (next < name)) ||
+	((context > name) && (next > context)))
+      strcpy(IOcapname, &data[next]);
+    else
+      IOcapname[0] = '\0';
+  }
+
+  if (name != -1)
+    strcpy(IOrelname, &data[name]);
+  else
+    IOrelname[0] = '\0';
+
+  Debug(Name_Flag, ("Capability for \"%s\"; relative path \"%s\"",
+		    IOcapname, IOrelname));
 
   for ( ; data[next] ne '/' && data[next] ne '\0'; next++)
     *dest++ = data[next];
