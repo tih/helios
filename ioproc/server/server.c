@@ -2660,10 +2660,15 @@ word convert_name()
       IOcapname[0] = '\0';
   }
 
-  if (name != -1)
-    strcpy(IOrelname, &data[name]);
-  else
+  if (name != -1) {
+    if (((name > context) && (next > name)) ||
+	((context > name) && (next < context)))
+      strcpy(IOrelname, &data[next]);
+    else
+      strcpy(IOrelname, &data[name]);
+  } else {
     IOrelname[0] = '\0';
+  }
 
   Debug(Name_Flag, ("Capability for \"%s\"; relative path \"%s\"",
 		    IOcapname, IOrelname));
