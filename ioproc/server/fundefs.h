@@ -142,7 +142,7 @@ PUBLIC word fn(  GetOutputSpeed,  (Attributes *));
 PUBLIC word fn(  Request_Stat,    (void));
 PUBLIC void fn(  Request_Return,  (word, word, word));
 PUBLIC void fn(  goto_sleep,      (word));
-PUBLIC word fn(  FormOpenReply,   (word, word, word, word));
+PUBLIC word fn(  FormOpenReply,   (word, word, Capability *));
 PUBLIC void fn(  copy_event,      (IOEvent *, IOEvent *));
 PUBLIC void fn(  pathcat,         (char *, char *));
 

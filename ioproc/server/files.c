@@ -862,22 +862,24 @@ Conode *myco;
 void Drive_Locate(myco)
 Conode *myco;
 { word temp;
+  ObjInfo info;
+  Capability cap;
+  Key key;
 
   get_local_name();
 
 #if drives_are_special
   if (isadrive(local_name))                /* allow for drive identifier only */
-    { temp = FormOpenReply(Type_Directory, 0L, -1L, -1L);
+    { temp = FormOpenReply(Type_Directory, 0L, NULL);
       Request_Return(ReplyOK, open_reply, temp);
       return;
     }
 #endif
 
-  Server_errno = EC_Error + SS_IOProc + EG_Unknown + EO_File;
-
                                         /* check whether or not file exists */
   unless(object_exists(local_name))
     {
+      Server_errno = EC_Error + SS_IOProc + EG_Unknown + EO_File;
 #if floppies_available
       if (floppy_errno) floppy_handler();
 #endif
@@ -885,11 +887,18 @@ Conode *myco;
       return;
     }
 
+  get_file_info(local_name, &info);
+  get_objdb_info(IOname, &info);
+  objdb_lookup(IOname, NULL, NULL, NULL, &key);
+  if (object_isadirectory(local_name))
+    c.Access = AccMask_V;
+  c.Access |= AccMask_R | AccMask_W;
+  makecap(&c, key);
                                         /* it exists, dir or file ? */
   if (object_isadirectory(local_name))
-    temp = FormOpenReply(Type_Directory, 0l, -1l, -1l);
+    temp = FormOpenReply(Type_Directory, 0l, &c);
   else
-    temp = FormOpenReply(Type_File, 0l, -1l, -1l);
+    temp = FormOpenReply(Type_File, 0l, &c);
 
   Request_Return(ReplyOK, open_reply, temp);
 
@@ -1065,7 +1074,7 @@ PRIVATE void Drive_Createfile()
 #endif
     }
 
-  temp = FormOpenReply(Type_File, 0l, -1l, -1l);
+  temp = FormOpenReply(Type_File, 0l, NULL);
   Request_Return(ReplyOK, open_reply, temp);
 #endif
 }
@@ -1092,7 +1101,7 @@ PRIVATE void Drive_Createdir()
      return;
    }
 
-  temp = FormOpenReply(Type_Directory, 0l, -1l, -1l);
+  temp = FormOpenReply(Type_Directory, 0l, NULL);
   Request_Return(ReplyOK, open_reply, temp);
 #endif
 }
@@ -1129,7 +1138,7 @@ word type;
   if (!temp)
      Request_Return(Server_errno, 0L, 0L);
   else
-   { temp = FormOpenReply(Type_Directory, 0l, -1l, -1l);
+   { temp = FormOpenReply(Type_Directory, 0l, NULL);
      Request_Return(ReplyOK, open_reply, temp);
    }
 }

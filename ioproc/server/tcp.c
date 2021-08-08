@@ -527,7 +527,7 @@ Conode *myco;
 		d->connwait = FALSE;
 
 		temp = FormOpenReply(Type_Socket,
-		     Flags_Server|Flags_Closeable|Flags_Selectable, -1L, -1L);
+		     Flags_Server|Flags_Closeable|Flags_Selectable, NULL);
 
 #if 0 /* @@@ sort out later */
 		Capability cap;

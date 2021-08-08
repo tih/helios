@@ -784,7 +784,7 @@ Conode *myco;
   word   temp;
          
   if (!strcmp(IOname, "window") )
-   { temp = FormOpenReply(Type_Directory, 0L, -1L, -1L); 
+   { temp = FormOpenReply(Type_Directory, 0L, NULL); 
      Request_Return(ReplyOK, open_reply, temp);
      return;
    }
@@ -806,7 +806,7 @@ Conode *myco;
    }
 
   if (new_window(window_name) ne (Window *) NULL)
-   { temp = FormOpenReply(Type_File, 0L, -1L, -1L);
+   { temp = FormOpenReply(Type_File, 0L, NULL);
      Request_Return(ReplyOK, open_reply, temp);
    }
   else

@@ -2131,7 +2131,7 @@ Conode *myco;
     Forward();
   else
    { IOname[0] = '\0';
-     temp = FormOpenReply(Type_Directory, 0L, -1L, -1L);
+     temp = FormOpenReply(Type_Directory, 0L, NULL);
      Request_Return(ReplyOK, open_reply, temp);
    }
 
@@ -2341,7 +2341,7 @@ Conode *myco;
 #endif
 { word temp;
 
-  temp = FormOpenReply(Type_File, 0L, -1L, -1L);
+  temp = FormOpenReply(Type_File, 0L, NULL);
   Request_Return(ReplyOK, open_reply, temp);
   use(myco)
 }
@@ -2471,13 +2471,13 @@ Conode *myco;
   ObjNode      *node;
             
   if (!strcmp(IOname, myco->name))    /* is it for the server ? */
-   { temp = FormOpenReply(Type_Directory, 0L, -1L, -1L); 
+   { temp = FormOpenReply(Type_Directory, 0L, NULL); 
      Request_Return(ReplyOK, open_reply, temp);
    }
   elif ( (node = Dir_find_node(myco) ) eq (ObjNode *) NULL)
    Request_Return(EC_Error + SS_IOProc + EG_Unknown + EO_File, 0L, 0L);
   else
-   { temp = FormOpenReply(Type_File, 0L, -1L, -1L);
+   { temp = FormOpenReply(Type_File, 0L, NULL);
      Request_Return(ReplyOK, open_reply, temp);
    }
 }
@@ -2772,19 +2772,25 @@ char *name;
 *** See header file iogsp.h for details of the returned data structure.
 **/
 
-word FormOpenReply(type, flags, cap1, cap2)
-word type, flags, cap1, cap2;
+word FormOpenReply(type, flags, capability)
+word type, flags;
+Capability *capability;
 { IOCReply1 *reply = (IOCReply1 *) mcb->Control;
 
   reply->Type         = type;
   reply->Flags        = flags;
-  if (type eq Type_File)
-   { reply->Access[0] = (byte) 
-        (AccMask_R+AccMask_W+AccMask_D+AccMask_A+AccMask_E);
-     memset(&(reply->Access[1]), 0, 7);
-   }
-  else
-   memset(&(reply->Access[0]), -1, 8);
+
+  if (capability) {
+    memcpy(&(reply->Access[0]), capability, sizeof Capability);
+  } else {
+    if (type eq Type_File)
+      { reply->Access[0] = (byte) 
+	  (AccMask_R+AccMask_W+AccMask_D+AccMask_A+AccMask_E);
+	memset(&(reply->Access[1]), 0, 7);
+      }
+    else
+      memset(&(reply->Access[0]), -1, 8);
+  }
   
   reply->Pathname     = 0L;     /* offset for pathname */
   reply->Object       = 0L;     /* object value if no reply port ? */
@@ -2803,8 +2809,6 @@ word type, flags, cap1, cap2;
 #endif
 
   return((word) (strlen(mcb->Data) + 1) );
-  use(cap1)
-  use(cap2)
 }
 
 
@@ -2883,7 +2887,7 @@ VoidConFnPtr *handlers;
 { word   temp;
   Conode *newco;
 
-  temp = FormOpenReply(type, flags, -1L, -1L);
+  temp = FormOpenReply(type, flags, NULL);
 
   newco = NewCo(General_Stream);
   unless(newco)
