@@ -890,9 +890,9 @@ Conode *myco;
   get_file_info(local_name, &info);
   get_objdb_info(IOname, &info);
   objdb_lookup(IOname, NULL, NULL, NULL, &key);
+  cap.Access = AccMask_R | AccMask_W;
   if (object_isadirectory(local_name))
-    cap.Access = AccMask_V;
-  cap.Access |= AccMask_R | AccMask_W;
+    cap.Access |= AccMask_V;
   makecap(&cap, key);
                                         /* it exists, dir or file ? */
   if (object_isadirectory(local_name))
