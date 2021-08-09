@@ -841,6 +841,7 @@ static void get_objdb_link(char *ioname, LinkInfo *link) {
       readlink(local_name, &link->Name[0], IOCDataMax-1);
       link->Name[IOCDataMax-1] = '\0';
       memset(&link->Cap, 0, 8);
+      link->Cap.Access = AccMask_R;
       objdb_put_link(ioname, &link->Cap, &link->Name[0]);
     }
   } else {
