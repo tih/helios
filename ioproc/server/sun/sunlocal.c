@@ -2399,7 +2399,7 @@ ObjInfo *Heliosinfo;
      case S_IFIFO  : type = Type_Fifo; break;
 
 #if (SOLARIS || MINIX)
-       case S_IFLNK  : type = Type_Link; break;
+     case S_IFLNK  : type = Type_Link; break;
 #endif
 
 #ifdef S_IFSOCK

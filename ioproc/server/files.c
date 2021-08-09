@@ -835,8 +835,8 @@ static void get_objdb_link(char *ioname, LinkInfo *link) {
   if (!strncmp(ioname, "helios/", 7)) {
     if (!objdb_get_link(ioname, &link->Cap, &link->Name[0])) {
       readlink(local_name, &link->Name[0], IOCDataMax-1);
-      memset(&link->Cap, 0, 8);
       link->Name[IOCDataMax-1] = '\0';
+      memset(&link->Cap, 0, 8);
       objdb_put_link(ioname, &link->Cap, &link->Name[0]);
     }
   } else {
@@ -988,6 +988,7 @@ void Drive_Locate(myco)
 Conode *myco;
 { word temp;
   ObjInfo info;
+  LinkInfo link;
   Capability cap;
   Key key;
 
@@ -1014,6 +1015,8 @@ Conode *myco;
 
   get_file_info(local_name, &info);
   get_objdb_info(IOname, &info);
+  if (info.DirEntry.Type == Type_Link)
+    get_objdb_link(IOname, &link);
   objdb_lookup(IOname, NULL, NULL, NULL, &key);
   cap.Access = AccMask_R | AccMask_W;
   if (object_isadirectory(local_name))
