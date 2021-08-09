@@ -553,7 +553,17 @@ char *ObjDB_GET =
   "select account, flags, matrix, key from objinfo"
   " where name = ?;";
 
+char *ObjDB_PUTLINK =
+  "update objinfo"
+  " set cap = ?, link = ?"
+  " where name = ?;";
+
+char *ObjDB_GETLINK =
+  "select cap, link from objinfo"
+  " where name = ?;";
+
 PRIVATE sqlite3_stmt *ObjDB_put, *ObjDB_get;
+PRIVATE sqlite3_stmt *ObjDB_putlink, *ObjDB_getlink;
 
 PRIVATE sqlite3 *objdb_open(char *db) {
   int ret;
@@ -562,6 +572,8 @@ PRIVATE sqlite3 *objdb_open(char *db) {
   if (ret == SQLITE_OK) {
     sqlite3_prepare_v2(handle, ObjDB_PUT, -1, &ObjDB_put, NULL);
     sqlite3_prepare_v2(handle, ObjDB_GET, -1, &ObjDB_get, NULL);
+    sqlite3_prepare_v2(handle, ObjDB_PUTLINK, -1, &ObjDB_putlink, NULL);
+    sqlite3_prepare_v2(handle, ObjDB_GETLINK, -1, &ObjDB_getlink, NULL);
     return handle;
   }
   return 0;
@@ -572,37 +584,72 @@ PRIVATE void objdb_close(void) {
 
 PRIVATE void objdb_store(char *path, word account, word flags,
 			 Matrix matrix, word key) {
+  char name[IOCDataMax];
 
-  if (path[strlen(path)-1] == '/')
-    path[strlen(path)-1] = '\0';
+  strncpy(name, path, IOCDataMax-1);
+  name[IOCDataMax-1] = '\0';
+  if (name[strlen(name)-1] == '/')
+    name[strlen(name)-1] = '\0';
 
   sqlite3_reset(ObjDB_put);
 
-  sqlite3_bind_text(ObjDB_put, 1, path, -1, NULL);
+  sqlite3_bind_text(ObjDB_put, 1, name, -1, NULL);
   sqlite3_bind_int(ObjDB_put, 2, account);
   sqlite3_bind_int(ObjDB_put, 3, flags);
   sqlite3_bind_int(ObjDB_put, 4, matrix);
   sqlite3_bind_int(ObjDB_put, 5, key);
 
   if (sqlite3_step(ObjDB_put) == SQLITE_DONE)
-    Debug (FileIO_Flag, ("object %s stored in database", path));
+    Debug (FileIO_Flag, ("object %s stored in database", name));
   else
-    Debug (FileIO_Flag, ("failed to store object %s in database", path));
+    Debug (FileIO_Flag, ("failed to store object %s in database", name));
+}
+
+PRIVATE void objdb_put_link(char *path, Capability cap, char *link) {
+  char name[IOCDataMax];
+
+  strncpy(name, path, IOCDataMax-1);
+  name[IOCDataMax-1] = '\0';
+  if (name[strlen(name)-1] == '/')
+    name[strlen(name)-1] = '\0';
+
+  sqlite3_reset(ObjDB_putlink);
+
+  sqlite3_bind_int(ObjDB_putlink, 1, cap);
+  sqlite3_bind_text(ObjDB_putlink, 2, link);
+  sqlite3_bind_text(ObjDB_putlink, 3, name, -1, NULL);
+
+  if (sqlite3_step(ObjDB_putlink) == SQLITE_DONE)
+    Debug (FileIO_Flag, ("link %s -> %s stored in database", name, link));
+  else
+    Debug (FileIO_Flag, ("failed to store link %s -> %s in database",
+			 name, link));
 }
 
 PRIVATE void objdb_update(char *path, word account, word flags,
 			  Matrix matrix, word key) {
+  char name[IOCDataMax];
+
+  strncpy(name, path, IOCDataMax-1);
+  name[IOCDataMax-1] = '\0';
+  if (name[strlen(name)-1] == '/')
+    name[strlen(name)-1] = '\0';
+
+  /* build query, execute it */
 }
 
 PRIVATE int objdb_lookup(char *path, word *account, word *flags,
 			 Matrix *matrix, word *key) {
+  char name[IOCDataMax];
 
-  if (path[strlen(path)-1] == '/')
-    path[strlen(path)-1] = '\0';
+  strncpy(name, path, IOCDataMax-1);
+  name[IOCDataMax-1] = '\0';
+  if (name[strlen(name)-1] == '/')
+    name[strlen(name)-1] = '\0';
 
   sqlite3_reset(ObjDB_get);
 
-  sqlite3_bind_text(ObjDB_get, 1, path, -1, NULL);
+  sqlite3_bind_text(ObjDB_get, 1, name, -1, NULL);
   if (sqlite3_step(ObjDB_get) == SQLITE_ROW) {
     if (account)
       *account = sqlite3_column_int(ObjDB_get, 0);
@@ -612,16 +659,53 @@ PRIVATE int objdb_lookup(char *path, word *account, word *flags,
       *matrix = sqlite3_column_int(ObjDB_get, 2);
     if (key)
       *key = sqlite3_column_int(ObjDB_get, 3);
-    Debug (FileIO_Flag, ("object %s fetched from database", path));
+    Debug (FileIO_Flag, ("object %s fetched from database", name));
     return 1;
   }
 
-  Debug (FileIO_Flag, ("failed to fetch object %s from database", path));
+  Debug (FileIO_Flag, ("failed to fetch object %s from database", name));
+
+  return 0;
+}
+
+PRIVATE int objdb_get_link(char *path, Capability *cap, char *link) {
+  char name[IOCDataMax];
+  char *lp;
+
+  strncpy(name, path, IOCDataMax-1);
+  name[IOCDataMax-1] = '\0';
+  if (name[strlen(name)-1] == '/')
+    name[strlen(name)-1] = '\0';
+
+  sqlite3_reset(ObjDB_getlink);
+
+  sqlite3_bind_text(ObjDB_getlink, 1, name, -1, NULL);
+  if (sqlite3_step(ObjDB_getlink) == SQLITE_ROW) {
+    if (cap)
+      *cap = sqlite3_column_int(ObjDB_getlink, 0);
+    *lp = sqlite3_column_text(ObjDB_getlink, 1);
+    if (link) {
+      strnpcy(link, lp, IOCDataMax);
+      link[IOCDataMax-1] = '\0';
+    }
+    Debug (FileIO_Flag, ("link %s -> %s fetched from database", name, lp));
+    return 1;
+  }
+
+  Debug (FileIO_Flag, ("failed to fetch link for %s from database", name));
 
   return 0;
 }
 
 PRIVATE void objdb_remove(char *path) {
+  char name[IOCDataMax];
+
+  strncpy(name, path, IOCDataMax-1);
+  name[IOCDataMax-1] = '\0';
+  if (name[strlen(name)-1] == '/')
+    name[strlen(name)-1] = '\0';
+
+  /* build query, execute it */
 }
 
 /* Support functions for capabilities in the Unix file server */
@@ -746,6 +830,22 @@ static void get_objdb_info(char *ioname, ObjInfo *info) {
   }
 }
 
+static void get_objdb_link(char *ioname, LinkInfo *link) {
+
+  if (!strncmp(ioname, "helios/", 7)) {
+    if (!objdb_get_link(ioname, &link->Cap, &link->Name[0])) {
+      readlink(local_name, &link->Name[0], IOCDataMax-1);
+      link->Cap = 0L;
+      link->Name[IOCDataMax-1] = '\0';
+      objdb_put_link(ioname, link->Cap, &link->Name[0]);
+    }
+  } else {
+    readlink(local_name, &link->Name[0], IOCDataMax-1);
+    link->Cap = 0L;
+    link->Name[IOCDataMax-1] = '\0';
+  }
+}
+
 /*
   IOCCommon *control = mcb->Control;
   byte *data = mcb->Data;
@@ -793,6 +893,13 @@ static void swap_objinfo(ObjInfo *info) {
   info->Creation = swap(info->Creation);
   info->Access = swap(info->Access);
   info->Modified = swap(info->Modified);
+  info->DirEntry.Type = swap(info->DirEntry.Type);
+  info->DirEntry.Flags = swap(info->DirEntry.Flags);
+  info->DirEntry.Matrix = swap(info->DirEntry.Matrix);
+}
+
+static void swap_linkinfo(LinkInfo *info) {
+
   info->DirEntry.Type = swap(info->DirEntry.Type);
   info->DirEntry.Flags = swap(info->DirEntry.Flags);
   info->DirEntry.Matrix = swap(info->DirEntry.Matrix);
@@ -912,11 +1019,8 @@ Conode *myco;
   if (object_isadirectory(local_name))
     cap.Access |= AccMask_V;
   makecap(&cap, key);
-                                        /* it exists, dir or file ? */
-  if (object_isadirectory(local_name))
-    temp = FormOpenReply(Type_Directory, 0l, &cap);
-  else
-    temp = FormOpenReply(Type_File, 0l, &cap);
+
+  temp = FormOpenReply(info.DirEntry.Type, 0L, &cap);
 
   Request_Return(ReplyOK, open_reply, temp);
 
@@ -1277,18 +1381,19 @@ Conode *myco;
 {
   int local_exists;
   Key key;
-  register ObjInfo *Heliosinfo = (ObjInfo *) mcb->Data;
+  register ObjInfo *info = (ObjInfo *) mcb->Data;
+  LinkInfo *link = (LinkInfo *) mcb->Data;
 
   if (!strcmp(IOname, "helios"))    /* Check for an ObjInfo on /helios */
-    { Heliosinfo->DirEntry.Type     = swap(Type_Directory);
-      Heliosinfo->DirEntry.Flags    = swap(0L);
-      Heliosinfo->DirEntry.Matrix   = swap(DefDirMatrix);
-      Heliosinfo->Size              = swap(0L);
-      Heliosinfo->Account           = swap(0L);
-      Heliosinfo->Creation          = swap(0L);
-      Heliosinfo->Access            = swap(0L);
-      Heliosinfo->Modified          = swap(0L);
-      strcpy(&(Heliosinfo->DirEntry.Name[0]), "helios");
+    { info->DirEntry.Type     = swap(Type_Directory);
+      info->DirEntry.Flags    = swap(0L);
+      info->DirEntry.Matrix   = swap(DefDirMatrix);
+      info->Size              = swap(0L);
+      info->Account           = swap(0L);
+      info->Creation          = swap(0L);
+      info->Access            = swap(0L);
+      info->Modified          = swap(0L);
+      strcpy(&(info->DirEntry.Name[0]), "helios");
       Request_Return(ReplyOK, 0L, (word) sizeof(ObjInfo));
       return;
     }
@@ -1300,16 +1405,16 @@ Conode *myco;
 #if drives_are_special
                             /* treat drives specially */
   if (isadrive(local_name))
-    { Heliosinfo->DirEntry.Type     = swap(Type_Directory);
-      Heliosinfo->DirEntry.Flags    = swap(0L);
-      Heliosinfo->DirEntry.Matrix   = swap(DefDirMatrix);
-      Heliosinfo->Size              = swap(0L);
-      Heliosinfo->Account           = swap(0L);
-      Heliosinfo->Creation          = swap(0L);
-      Heliosinfo->Access            = swap(0L);
-      Heliosinfo->Modified          = swap(0L);
-      Heliosinfo->DirEntry.Name[0]  = local_name[0];
-      Heliosinfo->DirEntry.Name[1]  = '\0';
+    { info->DirEntry.Type     = swap(Type_Directory);
+      info->DirEntry.Flags    = swap(0L);
+      info->DirEntry.Matrix   = swap(DefDirMatrix);
+      info->Size              = swap(0L);
+      info->Account           = swap(0L);
+      info->Creation          = swap(0L);
+      info->Access            = swap(0L);
+      info->Modified          = swap(0L);
+      info->DirEntry.Name[0]  = local_name[0];
+      info->DirEntry.Name[1]  = '\0';
       Request_Return(ReplyOK, 0L, (word) sizeof(ObjInfo));
       return;
     }
@@ -1318,7 +1423,7 @@ Conode *myco;
   local_exists = object_exists(local_name);
 
   if (local_exists) {
-    if (!get_file_info(local_name, Heliosinfo)) {
+    if (!get_file_info(local_name, info)) {
 	Server_errno = EC_Error + SS_IOProc + EG_Broken + EO_Directory;
 #if floppies_available
 	if (floppy_errno) floppy_handler();
@@ -1338,11 +1443,17 @@ Conode *myco;
     return;
   }
 
-  get_objdb_info(IOname, Heliosinfo);
+  get_objdb_info(IOname, info);
 
-  swap_objinfo(Heliosinfo);
-
-  Request_Return(ReplyOK, 0L, (word) sizeof(ObjInfo));
+  if (info->DirEntry.Type == Type_Link) {
+    get_objdb_link(IOname, link);
+    swap_linkinfo(info);
+    Request_Return(ReplyOK, 0L, (word) (sizeof(DirEntry) + sizeof(Capability)
+					+ strlen(link->Name) + 1);
+  } else {
+    swap_objinfo(info);
+    Request_Return(ReplyOK, 0L, (word) sizeof(ObjInfo));
+  }
 
 use(myco)
 }
@@ -2489,19 +2600,19 @@ Conode *myco;
 
 void Logger_ObjectInfo(myco)
 Conode *myco;
-{ register ObjInfo *Heliosinfo = (ObjInfo *) mcb->Data;
+{ register ObjInfo *info = (ObjInfo *) mcb->Data;
 
   if (!log_atend) log_toend();
 
-  Heliosinfo->DirEntry.Type   = swap(Type_File);
-  Heliosinfo->DirEntry.Flags  = swap(0L);
-  Heliosinfo->DirEntry.Matrix = swap(DefFileMatrix);
-  Heliosinfo->Size            = swap(log_curpos);
-  Heliosinfo->Account         = swap(0L);
-  Heliosinfo->Creation        = swap(Startup_Time);
-  Heliosinfo->Access          = swap(Startup_Time);
-  Heliosinfo->Modified        = swap(Startup_Time);
-  strcpy(Heliosinfo->DirEntry.Name, IOname);
+  info->DirEntry.Type   = swap(Type_File);
+  info->DirEntry.Flags  = swap(0L);
+  info->DirEntry.Matrix = swap(DefFileMatrix);
+  info->Size            = swap(log_curpos);
+  info->Account         = swap(0L);
+  info->Creation        = swap(Startup_Time);
+  info->Access          = swap(Startup_Time);
+  info->Modified        = swap(Startup_Time);
+  strcpy(info->DirEntry.Name, IOname);
 
   Request_Return(ReplyOK, 0L, (word) sizeof(ObjInfo));
   use(myco)

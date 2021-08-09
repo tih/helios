@@ -669,6 +669,14 @@ typedef struct ObjInfo {
         time_t          Modified;
 } ObjInfo;
 
+/* if the object is a link, the linkinfo structure is used instead. */
+
+typedef struct LinkInfo {
+        DirEntry        DirEntry;       /* re-iteration of common info  */
+        Capability      Cap;            /* a capability for the target  */
+        char            Name[IOCDataMax];  /* full path of the link     */
+} LinkInfo;
+
 /*----------------------------------------------------------------------*/
 /* Modes for Open                                                       */
 /*----------------------------------------------------------------------*/

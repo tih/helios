@@ -2398,6 +2398,10 @@ ObjInfo *Heliosinfo;
 
      case S_IFIFO  : type = Type_Fifo; break;
 
+#if (SOLARIS || MINIX)
+       case S_IFLNK  : type = Type_Link; break;
+#endif
+
 #ifdef S_IFSOCK
      case S_IFSOCK :   /* this type goes by different names */
 #endif
