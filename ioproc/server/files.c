@@ -605,7 +605,7 @@ PRIVATE void objdb_store(char *path, word account, word flags,
     Debug (FileIO_Flag, ("failed to store object %s in database", name));
 }
 
-PRIVATE void objdb_put_link(char *path, Capability cap, char *link) {
+PRIVATE void objdb_put_link(char *path, Capability *cap, char *link) {
   char name[IOCDataMax];
 
   strncpy(name, path, IOCDataMax-1);
@@ -615,8 +615,8 @@ PRIVATE void objdb_put_link(char *path, Capability cap, char *link) {
 
   sqlite3_reset(ObjDB_putlink);
 
-  sqlite3_bind_int(ObjDB_putlink, 1, cap);
-  sqlite3_bind_text(ObjDB_putlink, 2, link);
+  sqlite3_bind_int64(ObjDB_putlink, 1, *((uint64_t *)cap));
+  sqlite3_bind_text(ObjDB_putlink, 2, link, -1, NULL);
   sqlite3_bind_text(ObjDB_putlink, 3, name, -1, NULL);
 
   if (sqlite3_step(ObjDB_putlink) == SQLITE_DONE)
@@ -682,7 +682,7 @@ PRIVATE int objdb_get_link(char *path, Capability *cap, char *link) {
   sqlite3_bind_text(ObjDB_getlink, 1, name, -1, NULL);
   if (sqlite3_step(ObjDB_getlink) == SQLITE_ROW) {
     if (cap)
-      *cap = sqlite3_column_int(ObjDB_getlink, 0);
+      *((uint64_t *)cap) = sqlite3_column_int64(ObjDB_getlink, 0);
     *lp = sqlite3_column_text(ObjDB_getlink, 1);
     if (link) {
       strnpcy(link, lp, IOCDataMax);
@@ -837,7 +837,7 @@ static void get_objdb_link(char *ioname, LinkInfo *link) {
       readlink(local_name, &link->Name[0], IOCDataMax-1);
       link->Cap = 0L;
       link->Name[IOCDataMax-1] = '\0';
-      objdb_put_link(ioname, link->Cap, &link->Name[0]);
+      objdb_put_link(ioname, &link->Cap, &link->Name[0]);
     }
   } else {
     readlink(local_name, &link->Name[0], IOCDataMax-1);
@@ -1449,7 +1449,7 @@ Conode *myco;
     get_objdb_link(IOname, link);
     swap_linkinfo(info);
     Request_Return(ReplyOK, 0L, (word) (sizeof(DirEntry) + sizeof(Capability)
-					+ strlen(link->Name) + 1);
+					+ strlen(link->Name) + 1));
   } else {
     swap_objinfo(info);
     Request_Return(ReplyOK, 0L, (word) sizeof(ObjInfo));
