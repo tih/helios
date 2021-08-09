@@ -2393,7 +2393,7 @@ ObjInfo *Heliosinfo;
     strncpy(Heliosinfo->DirEntry.Name, ++p, 31);
   }
 
-  Debug (FileIO_Flag, ("XXXX object %s is of type %o",
+  Debug (FileIO_Flag, ("XXXX object %s is of type %x",
 		       name, searchbuffer.st_mode & S_IFMT));
 
   switch(searchbuffer.st_mode & S_IFMT)
