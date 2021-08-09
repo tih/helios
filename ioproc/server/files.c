@@ -689,7 +689,7 @@ PRIVATE int objdb_get_link(char *path, Capability *cap, char *link) {
     Debug (FileIO_Flag, ("YYYY %d", 3));
     if (link) {
       Debug (FileIO_Flag, ("YYYY %d", 4));
-      strnpcy(link, lp, IOCDataMax);
+      strncpy(link, lp, IOCDataMax);
       Debug (FileIO_Flag, ("YYYY %d", 5));
       link[IOCDataMax-1] = '\0';
       Debug (FileIO_Flag, ("YYYY %d", 6));
