@@ -2745,6 +2745,9 @@ PRIVATE word add_node(header,pathname, last_bit)
 #ifdef S_IFSOCK
      case S_IFSOCK : 
 #endif
+#if (SOLARIS || MINIX)
+     case S_IFLNK  : type = Type_Link; break;
+#endif
 #ifdef S_IFSOC
      case S_IFSOC  :
 #endif
