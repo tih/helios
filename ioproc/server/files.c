@@ -1729,14 +1729,16 @@ Conode *myco;
    }
 
 #if !(SUN || MINIX)
-  ServerDebug("link from %s to %s",linkname,IOname);
+  ServerDebug("link from %s to /%s",linkname,IOname);
   Request_Return(ReplyOK, 0L, 0L);
 
 #else
 
   Server_errno = EC_Error + SS_IOProc + EG_WrongFn + EO_Directory;
 
-  if (symlink(IOname,linkname)==0) 
+  strcpy(newname, "/");
+  strcat(newname, IOname);
+  if (symlink(newname,linkname)==0) 
     Request_Return(ReplyOK, 0L, 0L);
   else
    {
