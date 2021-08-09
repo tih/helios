@@ -1028,7 +1028,7 @@ Conode *myco;
   makecap(&cap, key);
 
   Debug (FileIO_Flag, ("Locate returning %s as type %02x",
-		       name, info.DirEntry.Type));
+		       IOname, info.DirEntry.Type));
 
   temp = FormOpenReply(info.DirEntry.Type, 0L, &cap);
 
