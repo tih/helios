@@ -518,8 +518,7 @@ typedef struct MCB {
 #define Context_off          0   /* offsets in the control vector for all */
 #define Pathname_off         1   /* directory requests */
 #define Nextname_off         2
-#define Cap1_off             3
-#define Cap2_off             4
+#define Capability_off       3
 #define cont_minsize         5
 
 #define arg1_off             5  /* additional offsets for directory requests */
@@ -533,8 +532,7 @@ typedef struct MCB {
 #define CreateInfo_off       7
 #define RenameToname_off     5
 #define LinkPathname_off     5
-#define LinkCap1_off         6
-#define LinkCap2_off         7
+#define LinkCapability_off   6
 #define ProtectNewmatrix_off 5
 #define RefineAccessMask_off 5
 #define SetDateDate_off      7  /* Only interested in Modified */

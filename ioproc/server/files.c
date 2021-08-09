@@ -573,6 +573,9 @@ PRIVATE void objdb_close(void) {
 PRIVATE void objdb_store(char *path, word account, word flags,
 			 Matrix matrix, word key) {
 
+  if (path[strlen(path)-1] == '/')
+    path[strlen(path)-1] = '\0')
+
   sqlite3_reset(ObjDB_put);
 
   sqlite3_bind_text(ObjDB_put, 1, path, -1, NULL);
@@ -592,7 +595,10 @@ PRIVATE void objdb_update(char *path, word account, word flags,
 }
 
 PRIVATE int objdb_lookup(char *path, word *account, word *flags,
-			  Matrix *matrix, word *key) {
+			 Matrix *matrix, word *key) {
+
+  if (path[strlen(path)-1] == '/')
+    path[strlen(path)-1] = '\0')
 
   sqlite3_reset(ObjDB_get);
 

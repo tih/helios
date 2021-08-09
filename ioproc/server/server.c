@@ -2652,7 +2652,7 @@ word convert_name()
 
   IOcapname[0] = '\0';
   if (context != -1) {
-    memcpy(&IOcapability, &control[Cap1_off], sizeof(Capability));
+    memcpy(&IOcapability, &control[Capability_off], sizeof(Capability));
     if ((name == -1) ||
 	((name > context) && (next < name)) ||
 	((context > name) && (next > context)))
