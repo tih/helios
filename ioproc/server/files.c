@@ -1737,8 +1737,8 @@ Conode *myco;
 
   Server_errno = EC_Error + SS_IOProc + EG_WrongFn + EO_Directory;
 
-  strcpy(newname, "/");
-  strcat(newname, IOname);
+  strcpy(newname, network_name);
+  pathcat(newname, IOname);
   if (symlink(newname,linkname)==0) 
     Request_Return(ReplyOK, 0L, 0L);
   else
