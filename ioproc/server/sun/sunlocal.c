@@ -2735,7 +2735,7 @@ PRIVATE word add_node(header,pathname, last_bit)
 #if SM90
   if (stat(pathname,&searchbuffer) eq -1)
 #else
-  if (stat(pathname,&searchbuffer) eq -1 && lstat(pathname,&searchbuffer) eq -1)
+  if (lstat(pathname,&searchbuffer) eq -1)
 #endif
   {
     Debug (Directory_Flag, ("Failed to stat %s", pathname));
