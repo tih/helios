@@ -837,11 +837,17 @@ static void get_objdb_info(char *ioname, ObjInfo *info) {
 static void get_objdb_link(char *ioname, LinkInfo *link) {
 
   if (!strncmp(ioname, "helios/", 7)) {
+    Debug (FileIO_Flag, ("XXXX %d", 1));
     if (!objdb_get_link(ioname, &link->Cap, &link->Name[0])) {
+      Debug (FileIO_Flag, ("XXXX %d", 2));
       readlink(local_name, &link->Name[0], IOCDataMax-1);
+      Debug (FileIO_Flag, ("XXXX %d", 3));
       link->Name[IOCDataMax-1] = '\0';
+      Debug (FileIO_Flag, ("XXXX %d", 4));
       memset(&link->Cap, 0, 8);
+      Debug (FileIO_Flag, ("XXXX %d", 5));
       objdb_put_link(ioname, &link->Cap, &link->Name[0]);
+      Debug (FileIO_Flag, ("XXXX %d", 6));
     }
   } else {
     readlink(local_name, &link->Name[0], IOCDataMax-1);
