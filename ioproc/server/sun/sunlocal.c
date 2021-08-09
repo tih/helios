@@ -2742,11 +2742,11 @@ PRIVATE word add_node(header,pathname, last_bit)
   switch(searchbuffer.st_mode & S_IFMT)
    { case S_IFDIR  : type = Type_Directory; break;
      case S_IFIFO  : type = Type_Fifo; break;
-#ifdef S_IFSOCK
-     case S_IFSOCK : 
-#endif
 #if (SOLARIS || MINIX)
      case S_IFLNK  : type = Type_Link; break;
+#endif
+#ifdef S_IFSOCK
+     case S_IFSOCK : 
 #endif
 #ifdef S_IFSOC
      case S_IFSOC  :

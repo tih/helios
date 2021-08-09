@@ -689,6 +689,8 @@ PRIVATE int objdb_get_link(char *path, Capability *cap, char *link) {
       link[IOCDataMax-1] = '\0';
     }
     Debug (FileIO_Flag, ("link %s -> %s fetched from database", name, lp));
+    if (*lp == '\0')
+      return 0;
     return 1;
   }
 
