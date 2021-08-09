@@ -681,18 +681,12 @@ PRIVATE int objdb_get_link(char *path, Capability *cap, char *link) {
 
   sqlite3_bind_text(ObjDB_getlink, 1, name, -1, NULL);
   if (sqlite3_step(ObjDB_getlink) == SQLITE_ROW) {
-    Debug (FileIO_Flag, ("YYYY %d", 1));
     if (cap)
       *((uint64_t *)cap) = sqlite3_column_int64(ObjDB_getlink, 0);
-    Debug (FileIO_Flag, ("YYYY %d", 2));
     lp = sqlite3_column_text(ObjDB_getlink, 1);
-    Debug (FileIO_Flag, ("YYYY %d", 3));
     if (link) {
-      Debug (FileIO_Flag, ("YYYY %d", 4));
       strncpy(link, lp, IOCDataMax);
-      Debug (FileIO_Flag, ("YYYY %d", 5));
       link[IOCDataMax-1] = '\0';
-      Debug (FileIO_Flag, ("YYYY %d", 6));
     }
     if (*lp == '\0') {
       Debug (FileIO_Flag, ("link for %s not found in database", name));
@@ -843,17 +837,11 @@ static void get_objdb_info(char *ioname, ObjInfo *info) {
 static void get_objdb_link(char *ioname, LinkInfo *link) {
 
   if (!strncmp(ioname, "helios/", 7)) {
-    Debug (FileIO_Flag, ("XXXX %d", 1));
     if (!objdb_get_link(ioname, &link->Cap, &link->Name[0])) {
-      Debug (FileIO_Flag, ("XXXX %d", 2));
       readlink(local_name, &link->Name[0], IOCDataMax-1);
-      Debug (FileIO_Flag, ("XXXX %d", 3));
       link->Name[IOCDataMax-1] = '\0';
-      Debug (FileIO_Flag, ("XXXX %d", 4));
       memset(&link->Cap, 0, 8);
-      Debug (FileIO_Flag, ("XXXX %d", 5));
       objdb_put_link(ioname, &link->Cap, &link->Name[0]);
-      Debug (FileIO_Flag, ("XXXX %d", 6));
     }
   } else {
     readlink(local_name, &link->Name[0], IOCDataMax-1);
@@ -1031,11 +1019,8 @@ Conode *myco;
 
   get_file_info(local_name, &info);
   get_objdb_info(IOname, &info);
-  if (info.DirEntry.Type == Type_Link) {
-    Debug (FileIO_Flag, ("XXXX Drive_Locate calling get_objdb_link(%s)",
-			 IOname));
+  if (info.DirEntry.Type == Type_Link)
     get_objdb_link(IOname, &link);
-  }
   objdb_lookup(IOname, NULL, NULL, NULL, &key);
   cap.Access = AccMask_R | AccMask_W;
   if (object_isadirectory(local_name))
@@ -1468,13 +1453,9 @@ Conode *myco;
     return;
   }
 
-  Debug (FileIO_Flag, ("XXXX object %s is of type %02x",
-		       local_name, info->DirEntry.Type));
   get_objdb_info(IOname, info);
 
   if (info->DirEntry.Type == Type_Link) {
-    Debug (FileIO_Flag, ("XXXX Drive_Objectinfo calling get_objdb_link(%s)",
-			 IOname));
     get_objdb_link(IOname, link);
     swap_linkinfo(info);
     Request_Return(ReplyOK, 0L, (word) (sizeof(DirEntry) + sizeof(Capability)
@@ -1748,14 +1729,14 @@ Conode *myco;
    }
 
 #if !(SUN || MINIX)
-  ServerDebug("link from %s to %s",local_name,linkname);
+  ServerDebug("link from %s to %s",linkname,IOname);
   Request_Return(ReplyOK, 0L, 0L);
 
 #else
 
   Server_errno = EC_Error + SS_IOProc + EG_WrongFn + EO_Directory;
 
-  if (symlink(local_name,linkname)==0) 
+  if (symlink(IOname,linkname)==0) 
     Request_Return(ReplyOK, 0L, 0L);
   else
    {
