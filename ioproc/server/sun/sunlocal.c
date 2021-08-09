@@ -2392,7 +2392,10 @@ ObjInfo *Heliosinfo;
     while (*p ne '/') p--;
     strncpy(Heliosinfo->DirEntry.Name, ++p, 31);
   }
- 
+
+  Debug (FileIO_Flag, ("XXXX object %s is of type %02x",
+		       name, searchbuffer.st_mode & S_IFMT));
+
   switch(searchbuffer.st_mode & S_IFMT)
    { case S_IFDIR  : type = Type_Directory; break;
 
