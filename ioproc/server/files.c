@@ -685,7 +685,7 @@ PRIVATE int objdb_get_link(char *path, Capability *cap, char *link) {
     if (cap)
       *((uint64_t *)cap) = sqlite3_column_int64(ObjDB_getlink, 0);
     Debug (FileIO_Flag, ("YYYY %d", 2));
-    *lp = sqlite3_column_text(ObjDB_getlink, 1);
+    lp = sqlite3_column_text(ObjDB_getlink, 1);
     Debug (FileIO_Flag, ("YYYY %d", 3));
     if (link) {
       Debug (FileIO_Flag, ("YYYY %d", 4));
