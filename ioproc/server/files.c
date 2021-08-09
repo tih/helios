@@ -574,7 +574,7 @@ PRIVATE void objdb_store(char *path, word account, word flags,
 			 Matrix matrix, word key) {
 
   if (path[strlen(path)-1] == '/')
-    path[strlen(path)-1] = '\0')
+    path[strlen(path)-1] = '\0');
 
   sqlite3_reset(ObjDB_put);
 
@@ -598,7 +598,7 @@ PRIVATE int objdb_lookup(char *path, word *account, word *flags,
 			 Matrix *matrix, word *key) {
 
   if (path[strlen(path)-1] == '/')
-    path[strlen(path)-1] = '\0')
+    path[strlen(path)-1] = '\0');
 
   sqlite3_reset(ObjDB_get);
 
