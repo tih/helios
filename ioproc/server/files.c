@@ -1019,8 +1019,11 @@ Conode *myco;
 
   get_file_info(local_name, &info);
   get_objdb_info(IOname, &info);
-  if (info.DirEntry.Type == Type_Link)
+  if (info.DirEntry.Type == Type_Link) {
+    Debug (FileIO_Flag, ("XXXX Drive_Locate calling get_objdb_link(%s)",
+			 IOname);
     get_objdb_link(IOname, &link);
+  }
   objdb_lookup(IOname, NULL, NULL, NULL, &key);
   cap.Access = AccMask_R | AccMask_W;
   if (object_isadirectory(local_name))
@@ -1458,6 +1461,8 @@ Conode *myco;
   get_objdb_info(IOname, info);
 
   if (info->DirEntry.Type == Type_Link) {
+    Debug (FileIO_Flag, ("XXXX Drive_Objectinfo calling get_objdb_link(%s)",
+			 IOname);
     get_objdb_link(IOname, link);
     swap_linkinfo(info);
     Request_Return(ReplyOK, 0L, (word) (sizeof(DirEntry) + sizeof(Capability)
