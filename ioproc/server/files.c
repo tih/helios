@@ -1453,6 +1453,8 @@ Conode *myco;
     return;
   }
 
+  Debug (FileIO_Flag, ("XXXX object %s is of type %02x",
+		       local_name, info->DirEntry.Type));
   get_objdb_info(IOname, info);
 
   if (info->DirEntry.Type == Type_Link) {
