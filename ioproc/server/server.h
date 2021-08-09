@@ -119,6 +119,7 @@ word        CoCount=1L;             /* counter for coroutine id numbering */
 word        time_unit;
 time_t      Startup_Time;
 clock_t     Now, initial_stamp;
+char        network_name[IOCDataMax];
 char        IOname[IOCDataMax];
 Capability  IOcapability;
 char        IOcapname[IOCDataMax];
@@ -1219,6 +1220,7 @@ extern word         CoCount;
 extern word         time_unit;
 extern time_t       Startup_Time;
 extern clock_t      Now, initial_stamp;
+extern char         network_name[];
 extern char         IOname[];
 extern Capability   IOcapability;
 extern char         IOcapname[];

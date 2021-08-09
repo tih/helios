@@ -1794,7 +1794,6 @@ Conode *myco;
 *** appropriate server. 
 **/
 PRIVATE void fn( Forward, (void));
-PRIVATE char network_name[IOCDataMax];
 
 /**
 *** Forward_handler() is a default handler for many IOproc requests. The request
