@@ -835,13 +835,13 @@ static void get_objdb_link(char *ioname, LinkInfo *link) {
   if (!strncmp(ioname, "helios/", 7)) {
     if (!objdb_get_link(ioname, &link->Cap, &link->Name[0])) {
       readlink(local_name, &link->Name[0], IOCDataMax-1);
-      link->Cap = 0L;
+      memset(&link->Cap, 0, 8);
       link->Name[IOCDataMax-1] = '\0';
       objdb_put_link(ioname, &link->Cap, &link->Name[0]);
     }
   } else {
     readlink(local_name, &link->Name[0], IOCDataMax-1);
-    link->Cap = 0L;
+    memset(&link->Cap, 0, 8);
     link->Name[IOCDataMax-1] = '\0';
   }
 }
