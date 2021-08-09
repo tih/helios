@@ -688,9 +688,11 @@ PRIVATE int objdb_get_link(char *path, Capability *cap, char *link) {
       strnpcy(link, lp, IOCDataMax);
       link[IOCDataMax-1] = '\0';
     }
-    Debug (FileIO_Flag, ("link %s -> %s fetched from database", name, lp));
-    if (*lp == '\0')
+    if (*lp == '\0') {
+      Debug (FileIO_Flag, ("link for %s not found in database", name));
       return 0;
+    }
+    Debug (FileIO_Flag, ("link %s -> %s fetched from database", name, lp));
     return 1;
   }
 
@@ -1024,6 +1026,9 @@ Conode *myco;
   if (object_isadirectory(local_name))
     cap.Access |= AccMask_V;
   makecap(&cap, key);
+
+  Debug (FileIO_Flag, ("Locate returning %s as type %02x",
+		       name, info.DirEntry.Type));
 
   temp = FormOpenReply(info.DirEntry.Type, 0L, &cap);
 
