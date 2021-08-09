@@ -2305,7 +2305,7 @@ char *name;
 #if SM90
 { if (stat(name, &searchbuffer) eq -1)
 #else
-{ if (stat(name, &searchbuffer) eq -1 && lstat(name, &searchbuffer) eq -1)
+{ if (lstat(name, &searchbuffer) eq -1)
 #endif
    { convert_error();
      searchbuffer.st_mode = S_IFREG;
