@@ -681,12 +681,18 @@ PRIVATE int objdb_get_link(char *path, Capability *cap, char *link) {
 
   sqlite3_bind_text(ObjDB_getlink, 1, name, -1, NULL);
   if (sqlite3_step(ObjDB_getlink) == SQLITE_ROW) {
+    Debug (FileIO_Flag, ("YYYY %d", 1));
     if (cap)
       *((uint64_t *)cap) = sqlite3_column_int64(ObjDB_getlink, 0);
+    Debug (FileIO_Flag, ("YYYY %d", 2));
     *lp = sqlite3_column_text(ObjDB_getlink, 1);
+    Debug (FileIO_Flag, ("YYYY %d", 3));
     if (link) {
+      Debug (FileIO_Flag, ("YYYY %d", 4));
       strnpcy(link, lp, IOCDataMax);
+      Debug (FileIO_Flag, ("YYYY %d", 5));
       link[IOCDataMax-1] = '\0';
+      Debug (FileIO_Flag, ("YYYY %d", 6));
     }
     if (*lp == '\0') {
       Debug (FileIO_Flag, ("link for %s not found in database", name));
