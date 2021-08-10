@@ -260,6 +260,9 @@ extern word   fn( search_directory, (char *, List *));
 #define object_isadirectory(name) \
   ((( (int) searchbuffer.st_mode & S_IFDIR) !=0) ? true : false)
 
+#define object_isasymlink(name) \
+  ((( (int) searchbuffer.st_mode & S_IFLNK) !=0) ? true : false)
+
 #endif
 #if MAC
 
@@ -1683,10 +1686,18 @@ Conode *myco;
   char *data = mcb->Data;
   int  context = (int) mcb->Control[Context_off];
   int  name    = (int) mcb->Control[Pathname_off];
-  int  dest    = (int) mcb->Control[RenameToname_off];
+  int  cap     = (int) mcb->Control[Capability_off];
+  int  dest    = (int) mcb->Control[LinkPathname_off];
+  int  destcap = (int) mcb->Control[LinkCapability_off];
   int  offset;
+  ObjInfo info;
+  char srcIOname[IOCDataMax];
 
   get_local_name();
+
+  if (object_exists(local_name))
+    get_objdb_info(IOname, &info);
+  strcpy(srcIOname, IOname);
 
   strcpy(linkname, local_name);              /* source name is in local_name */
 
@@ -1737,14 +1748,15 @@ Conode *myco;
 
   Server_errno = EC_Error + SS_IOProc + EG_WrongFn + EO_Directory;
 
+  /* strcpy(newname, "/"); */
   strcpy(newname, network_name);
   pathcat(newname, IOname);
-  if (symlink(newname,linkname)==0) 
+  if (symlink(newname,linkname)==0) {
+    objdb_put_link(srcIOname, &(mcb->Data[destcap]), newname);
     Request_Return(ReplyOK, 0L, 0L);
-  else
-   {
-     Request_Return(Server_errno, 0L, 0L);
-   }
+  } else {
+    Request_Return(Server_errno, 0L, 0L);
+  }
 #endif
 
   use(myco)
