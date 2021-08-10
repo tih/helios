@@ -1756,10 +1756,16 @@ Conode *myco;
     if (destcap == -1) {
       defcap.Access = -1;
       memset(&(defcap.Valid[0]), 0, 7);
+      Debug(FileIO_Flag, ("storing link %s -> %s with default cap",
+			  srcIOname, newname));
       objdb_put_link(srcIOname, &defcap, newname);
     } else {
+      Debug(FileIO_Flag, ("storing link %s -> %s with supplied cap",
+			  srcIOname, newname));
       objdb_put_link(srcIOname, &(mcb->Data[destcap]), newname);
     }
+    Debug(FileIO_Flag, ("link %s -> %s created and stored",
+			srcIOname, newname));
     Request_Return(ReplyOK, 0L, 0L);
   } else {
     Request_Return(Server_errno, 0L, 0L);
