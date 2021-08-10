@@ -1760,8 +1760,8 @@ Conode *myco;
 			  srcIOname, newname));
       objdb_put_link(srcIOname, &defcap, newname);
     } else {
-      Debug(FileIO_Flag, ("storing link %s -> %s with supplied cap",
-			  srcIOname, newname));
+      Debug(FileIO_Flag, ("storing link %s -> %s with supplied cap at %d",
+			  srcIOname, newname, destcap));
       objdb_put_link(srcIOname, &(mcb->Data[destcap]), newname);
     }
     Debug(FileIO_Flag, ("link %s -> %s created and stored",
