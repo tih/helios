@@ -1692,6 +1692,7 @@ Conode *myco;
   int  offset;
   ObjInfo info;
   char srcIOname[IOCDataMax];
+  Capability defcap;
 
   get_local_name();
 
@@ -1752,7 +1753,13 @@ Conode *myco;
   strcpy(newname, network_name);
   pathcat(newname, IOname);
   if (symlink(newname,linkname)==0) {
-    objdb_put_link(srcIOname, &(mcb->Data[destcap]), newname);
+    if (destcap == -1) {
+      defcap.Access = -1;
+      memset(&(defcap.Valid[0]), 0, 7);
+      objdb_put_link(srcIOname, &defcap, newname);
+    } else {
+      objdb_put_link(srcIOname, &(mcb->Data[destcap]), newname);
+    }
     Request_Return(ReplyOK, 0L, 0L);
   } else {
     Request_Return(Server_errno, 0L, 0L);
