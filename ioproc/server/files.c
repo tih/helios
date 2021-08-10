@@ -1688,7 +1688,6 @@ Conode *myco;
   int  name    = (int) mcb->Control[Pathname_off];
   int  cap     = (int) mcb->Control[Capability_off];
   int  dest    = (int) mcb->Control[LinkPathname_off];
-  int  destcap = (int) mcb->Control[LinkCapability_off];
   int  offset;
   ObjInfo info;
   char srcIOname[IOCDataMax];
@@ -1752,18 +1751,8 @@ Conode *myco;
   /* strcpy(newname, "/"); */
   strcpy(newname, network_name);
   pathcat(newname, IOname);
-  if (symlink(newname,linkname)==0) {
-    if (destcap == -1) {
-      defcap.Access = -1;
-      memset(&(defcap.Valid[0]), 0, 7);
-      Debug(FileIO_Flag, ("storing link %s -> %s with default cap",
-			  srcIOname, newname));
-      objdb_put_link(srcIOname, &defcap, newname);
-    } else {
-      Debug(FileIO_Flag, ("storing link %s -> %s with supplied cap at %d",
-			  srcIOname, newname, destcap));
-      objdb_put_link(srcIOname, &(mcb->Data[destcap]), newname);
-    }
+  if (symlink(newname, linkname) == 0) {
+    objdb_put_link(srcIOname, &(mcb->Control[LinkCapability_off]), newname);
     Debug(FileIO_Flag, ("link %s -> %s created and stored",
 			srcIOname, newname));
     Request_Return(ReplyOK, 0L, 0L);
