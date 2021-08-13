@@ -1002,10 +1002,11 @@ Conode *myco;
   Capability cap;
   Key key;
 
-  Debug (Graphics_Flag, ("Locate:\nContext:  %s\nPathname: %s\nNext:     %s",
-			 &(mcb->Data[(int)mcb->Control[Context_off]]),
-			 &(mcb->Data[(int)mcb->Control[Pathname_off]]),
-			 &(mcb->Data[(int)mcb->Control[Nextname_off]]) ));
+  Debug(Graphics_Flag,
+	("\nLocate:\nContext:  %s\nPathname: %s\nNext:     %s",
+	 mcb->Control[Context_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Context_off]]) : NULL,
+	 mcb->Control[Pathname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Pathname_off]]) : NULL,
+	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : NULL ));
 
   get_local_name();
 
