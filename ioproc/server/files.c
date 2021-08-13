@@ -1003,7 +1003,7 @@ Conode *myco;
   Key key;
 
   Debug(Graphics_Flag,
-	("\nLocate:\nContext:  %s\nPathname: %s\nNext:     %s",
+	("\nLOCATE:\nContext:  %s\nPathname: %s\nNext:     %s",
 	 mcb->Control[Context_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Context_off]]) : "",
 	 mcb->Control[Pathname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Pathname_off]]) : "",
 	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : "" ));
@@ -1091,6 +1091,12 @@ Conode *myco;
 { word itsadirectory;
   word openmode = (mcb->Control)[OpenMode_off];
 
+  Debug(Graphics_Flag,
+	("\nOPEN:\nContext:  %s\nPathname: %s\nNext:     %s",
+	 mcb->Control[Context_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Context_off]]) : "",
+	 mcb->Control[Pathname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Pathname_off]]) : "",
+	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : "" ));
+
   get_local_name();
 
   Debug(Open_Flag, ("Supposed to open %s", local_name));
@@ -1170,6 +1176,12 @@ PRIVATE void fn( Drive_Createfile, (void));
 void Drive_Create(myco)
 Conode *myco;
 { word type = (mcb->Control)[CreateType_off];
+
+  Debug(Graphics_Flag,
+	("\nCREATE:\nContext:  %s\nPathname: %s\nNext:     %s",
+	 mcb->Control[Context_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Context_off]]) : "",
+	 mcb->Control[Pathname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Pathname_off]]) : "",
+	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : "" ));
 
   get_local_name();
 
@@ -1311,6 +1323,12 @@ Conode *myco;
      return;
    }
 
+  Debug(Graphics_Flag,
+	("\nDELETE:\nContext:  %s\nPathname: %s\nNext:     %s",
+	 mcb->Control[Context_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Context_off]]) : "",
+	 mcb->Control[Pathname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Pathname_off]]) : "",
+	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : "" ));
+
   get_local_name();
 
 #if drives_are_special
@@ -1405,6 +1423,12 @@ Conode *myco;
   Key key;
   register ObjInfo *info = (ObjInfo *) mcb->Data;
   LinkInfo *link = (LinkInfo *) mcb->Data;
+
+  Debug(Graphics_Flag,
+	("\nOBJECTINFO:\nContext:  %s\nPathname: %s\nNext:     %s",
+	 mcb->Control[Context_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Context_off]]) : "",
+	 mcb->Control[Pathname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Pathname_off]]) : "",
+	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : "" ));
 
   if (!strcmp(IOname, "helios"))    /* Check for an ObjInfo on /helios */
     { info->DirEntry.Type     = swap(Type_Directory);
@@ -1518,6 +1542,13 @@ Conode *myco;
 
   Debug(FileIO_Flag, ("Rename request received"));
 
+  Debug(Graphics_Flag,
+	("\nRENAME:\nContext:  %s\nPathname: %s\nNext:     %s\nToname:   %s",
+	 mcb->Control[Context_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Context_off]]) : "",
+	 mcb->Control[Pathname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Pathname_off]]) : "",
+	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : "",
+	 mcb->Control[RenameToname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[RenameToname_off]]) : "" ));
+
   get_local_name();
 
 #if drives_are_special
@@ -1603,6 +1634,12 @@ use(myco)
 void Drive_SetDate(myco)
 Conode *myco;
 { word unixstamp = (mcb->Control)[SetDateDate_off];
+
+  Debug(Graphics_Flag,
+	("\nSETDATE:\nContext:  %s\nPathname: %s\nNext:     %s",
+	 mcb->Control[Context_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Context_off]]) : "",
+	 mcb->Control[Pathname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Pathname_off]]) : "",
+	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : "" ));
 
   get_local_name();
 
@@ -1700,6 +1737,13 @@ Conode *myco;
   ObjInfo info;
   char srcIOname[IOCDataMax];
   Capability defcap;
+
+  Debug(Graphics_Flag,
+	("\nLINK:\nContext:  %s\nPathname: %s\nNext:     %s\nLinkpath: %s",
+	 mcb->Control[Context_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Context_off]]) : "",
+	 mcb->Control[Pathname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Pathname_off]]) : "",
+	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : "",
+	 mcb->Control[LinkPathname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[LinkPathname_off]]) : "" ));
 
   get_local_name();
 
