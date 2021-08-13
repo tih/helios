@@ -643,6 +643,7 @@ PRIVATE void objdb_update(char *path, word account, word flags,
 
 PRIVATE int objdb_lookup(char *path, word *account, word *flags,
 			 Matrix *matrix, word *key) {
+  int ret;
   char name[IOCDataMax];
 
   strncpy(name, path, IOCDataMax-1);
@@ -653,7 +654,7 @@ PRIVATE int objdb_lookup(char *path, word *account, word *flags,
   sqlite3_reset(ObjDB_get);
 
   sqlite3_bind_text(ObjDB_get, 1, name, -1, NULL);
-  if (sqlite3_step(ObjDB_get) == SQLITE_ROW) {
+  if ((ret = sqlite3_step(ObjDB_get)) == SQLITE_ROW) {
     if (account)
       *account = sqlite3_column_int(ObjDB_get, 0);
     if (flags)
@@ -666,7 +667,8 @@ PRIVATE int objdb_lookup(char *path, word *account, word *flags,
     return 1;
   }
 
-  Debug (FileIO_Flag, ("failed to fetch object %s from database", name));
+  Debug (FileIO_Flag, ("failed to fetch object %s; sqlite3_step() said %d",
+		       name, ret));
 
   return 0;
 }
@@ -999,6 +1001,11 @@ Conode *myco;
   LinkInfo link;
   Capability cap;
   Key key;
+
+  Debug (Graphics_Flag, ("Locate:\nContext:  %s\nPathname: %s\nNext:     %s",
+			 &(mcb->Data[(int)mcb->Control[Context_off]]),
+			 &(mcb->Data[(int)mcb->Control[Pathname_off]]),
+			 &(mcb->Data[(int)mcb->Control[Nextname_off]]) ));
 
   get_local_name();
 
