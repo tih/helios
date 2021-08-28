@@ -853,9 +853,11 @@ static void get_objdb_link(char *ioname, LinkInfo *link) {
   } else {
     int len = readlink(local_name, &link->Name[0], IOCDataMax-1);
     link->Name[len] = '\0';
-    if ((link->Name[0] != '/') && strchr(ioname, '/')) {
+    if (link->Name[0] != '/') {
       char *lp;
-      strcpy(link->Name, ioname);
+      strcpy(link->Name, network_name);
+      pathcat(link->Name, "files");
+      pathcat(link->Name, local_name);
       lp = strrchr(link->Name, '/');
       lp++;
       len = readlink(local_name, lp, IOCDataMax - strlen(link->Name) - 1);
