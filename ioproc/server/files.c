@@ -1113,6 +1113,8 @@ void Drive_Open(myco)
 Conode *myco;
 { word itsadirectory;
   word openmode = (mcb->Control)[OpenMode_off];
+  ObjInfo info;
+  LinkInfo link;
 
   Debug(Graphics_Flag,
 	("\nOPEN:\nContext:  %s\nPathname: %s\nNext:     %s",
@@ -1120,6 +1122,7 @@ Conode *myco;
 	 mcb->Control[Pathname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Pathname_off]]) : "",
 	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : "" ));
 
+ again:
   get_local_name();
 
   Debug(Open_Flag, ("Supposed to open %s", local_name));
@@ -1139,6 +1142,16 @@ Conode *myco;
          { Request_Return(EC_Error + SS_IOProc + EG_InUse + EO_Name, 0L, 0L);
            return;
          }
+	get_objdb_info(IOname, &info);
+	if (info.DirEntry.Type == Type_Link) {
+	  /* XXX: temporary until proper directory walk */
+	  get_objdb_link(IOname, &link);
+	  if (!strncmp(link.Name, network_name, strlen(network_name)))
+	    strcpy(IOname, &link.Name[strlen(network_name)+1]);
+	  else
+	    strcpy(IOname, link.Name);
+	  goto again;
+	}
         if (object_isadirectory(local_name))
           itsadirectory = true;   /* opening existing directory */
       }
