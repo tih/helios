@@ -2433,21 +2433,20 @@ ObjInfo *Heliosinfo;
 }
 
 
-WORD set_file_date(name,time) 
+WORD set_file_date(name,dateset) 
      char *name;
-     long time;
+     DateSet *dateset;
 {
-#if SOLARIS
+#if (SOLARIS || MINIX)
   struct utimbuf timestamps;
-  timestamps.actime = time;
-  timestamps.modtime = time; 
-
+  timestamps.actime = dateset->Access;
+  timestamps.modtime = dateset->Modified;
   return (utime (name,&timestamps) eq 0) ? TRUE : FALSE;
 #else
   time_t timestamps[2]; 
-  timestamps[0] = time;
-  timestamps[1] =time;
-  return (utime(name,timestamps) eq 0) ? TRUE : FALSE;
+  timestamps[0] = dateset->Access;
+  timestamps[1] = dateset->Modified;
+  return (utime (name,timestamps) eq 0) ? TRUE : FALSE;
 #endif
 }
 

@@ -535,7 +535,7 @@ typedef struct MCB {
 #define LinkCapability_off   6
 #define ProtectNewmatrix_off 5
 #define RefineAccessMask_off 5
-#define SetDateDate_off      7  /* Only interested in Modified */
+#define SetDateDateSet_off   5
 
 #define ReadPos_off          0   /* offsets for stream requests */
 #define ReadSize_off         1
@@ -652,6 +652,15 @@ typedef struct { word           Type;
                  Matrix         Matrix;
                  char           Name[32];
 } DirEntry;
+
+/*----------------------------------------------------------------------*/
+/* DateSet structure                                                    */
+/*----------------------------------------------------------------------*/
+typedef struct {
+        time_t          Creation;       /* three date stamps            */
+        time_t          Access;
+        time_t          Modified;
+} DateSet;
 
 /*----------------------------------------------------------------------*/
 /* Generic Object Info structure                                        */

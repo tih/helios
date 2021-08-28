@@ -335,7 +335,7 @@ Conode *myco;
 
 void Clock_SetDate(myco)
 Conode *myco;
-{ word unixstamp = (mcb->Control)[SetDateDate_off];
+{ word unixstamp = (mcb->Control)[SetDateDateSet_off + 2];
   extern void fn( set_current_time, (word));
 
   set_current_time(unixstamp);

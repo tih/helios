@@ -70,7 +70,8 @@
 *** the destination file if it exists already.
 ***
 *** set_file_date(name, stamp) - this is used to set the date of last access
-*** of the named file. The timestamp is a unix time stamp, seconds since 1970.
+*** and modification of the named file. The timestamp is a Helios DateSet,
+*** which is a set of three unix time stamps as seconds since 1970.
 ***
 *** get_drive_info(name, *servinfo) - this is used to obtain information about
 *** the current usage of a drive. The drive is identified by the name, and the
@@ -247,7 +248,7 @@ extern word   fn( delete_file,      (char *));
 extern word   fn( rename_object,    (char *, char *));
 extern word   fn( create_file,      (char *));
 extern word   fn( get_file_info,    (char *, ObjInfo *));
-extern word   fn( set_file_date,    (char *, word));
+extern word   fn( set_file_date,    (char *, DateSet *));
 extern word   fn( get_drive_info,   (char *, servinfo *));
 extern stream fn( open_file,        (char *, word));
 extern word   fn( get_file_size,    (stream, word));
@@ -284,7 +285,7 @@ extern word   fn( delete_file,      (char *));
 extern word   fn( rename_object,    (char *, char *));
 extern word   fn( create_file,      (char *));
 extern word   fn( get_file_info,    (char *, ObjInfo *));
-extern word   fn( set_file_date,    (char *, word));
+extern word   fn( set_file_date,    (char *, DateSet *));
 extern word   fn( get_drive_info,   (char *, servinfo *));
 extern stream fn( open_file,        (char *, word));
 extern word   fn( get_file_size,    (stream, word));
@@ -1633,7 +1634,7 @@ use(myco)
 
 void Drive_SetDate(myco)
 Conode *myco;
-{ word unixstamp = (mcb->Control)[SetDateDate_off];
+{ DateSet *dateset = &((mcb->Control)[SetDateDateSet_off]);
 
   Debug(Graphics_Flag,
 	("\nSETDATE:\nContext:  %s\nPathname: %s\nNext:     %s",
@@ -1643,7 +1644,8 @@ Conode *myco;
 
   get_local_name();
 
-  Debug(FileIO_Flag, ("SetDate request for %s", local_name));
+  Debug(FileIO_Flag, ("SetDate request for %s:\nCreate: %s\nAccess: %s\nModif.: %s", local_name,
+		      ctime(dateset->Creation), ctime(dateset->Access), ctime(dateset->Modified) ));
 
 #if drives_are_special
                             /* now check that it exists and that it is a file */
@@ -1667,7 +1669,7 @@ Conode *myco;
 
   Server_errno = EC_Error + SS_IOProc + EG_WrongFn + EO_File;
 
-  if (set_file_date(local_name, unixstamp))
+  if (set_file_date(local_name, dateset))
     Request_Return(ReplyOK, 0L, 0L);
   else
     { 
