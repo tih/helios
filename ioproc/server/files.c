@@ -862,7 +862,7 @@ static void get_objdb_link(char *ioname, LinkInfo *link) {
       strcpy(link->Name, network_name);
       pathcat(link->Name, ioname);
     }
-    lp = strrchr(link->Name, '/');
+    lp = strrchr(link->Name, '/') + 1;
     len = readlink(local_name, lp, IOCDataMax - strlen(link->Name) - 1);
     lp[len] = '\0';
     flatten(link->Name);
