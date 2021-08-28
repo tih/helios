@@ -1024,6 +1024,11 @@ Conode *myco;
 	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : "" ));
 
  again:
+
+  /* XXX temporary until proper directory walk */
+  if (IOname[strlen(IOname)-1] == '/')
+    IOname[strlen(IOname)-1] = '\0';
+
   get_local_name();
 
 #if drives_are_special
@@ -1123,6 +1128,11 @@ Conode *myco;
 	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : "" ));
 
  again:
+
+  /* XXX temporary until proper directory walk */
+  if (IOname[strlen(IOname)-1] == '/')
+    IOname[strlen(IOname)-1] = '\0';
+
   get_local_name();
 
   Debug(Open_Flag, ("Supposed to open %s", local_name));
@@ -1466,6 +1476,10 @@ Conode *myco;
 	 mcb->Control[Context_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Context_off]]) : "",
 	 mcb->Control[Pathname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Pathname_off]]) : "",
 	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : "" ));
+
+  /* XXX temporary until proper directory walk */
+  if (IOname[strlen(IOname)-1] == '/')
+    IOname[strlen(IOname)-1] = '\0';
 
   if (!strcmp(IOname, "helios"))    /* Check for an ObjInfo on /helios */
     { info->DirEntry.Type     = swap(Type_Directory);
