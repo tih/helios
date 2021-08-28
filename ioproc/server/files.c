@@ -851,9 +851,17 @@ static void get_objdb_link(char *ioname, LinkInfo *link) {
       objdb_put_link(ioname, &link->Cap, &link->Name[0]);
     }
   } else {
-    readlink(local_name, &link->Name[0], IOCDataMax-1);
+    int len = readlink(local_name, &link->Name[0], IOCDataMax-1);
+    link->Name[len] = '\0';
+    if ((link->Name[0] != '/') && strchr(ioname, '/')) {
+      char *lp;
+      strcpy(link->Name, ioname);
+      lp = strrchr(link->Name, '/');
+      *lp  = '\0';
+      len = readlink(local_name, lp, IOCDataMax - strlen(link->Name) - 1);
+      lp[len] = '\0';
+    }
     memset(&link->Cap, 0, 8);
-    link->Name[IOCDataMax-1] = '\0';
   }
 }
 
