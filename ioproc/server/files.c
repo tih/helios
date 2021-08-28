@@ -849,7 +849,7 @@ static void get_objdb_link(char *ioname, LinkInfo *link) {
       len = readlink(local_name, &link->Name[0], IOCDataMax-1);
       link->Name[len] = '\0';
       /* XXX: this bit is temporary until the proper directory walk */
-      if (strncmp(link.Name, network_name, strlen(network_name))) {
+      if (strncmp(link->Name, network_name, strlen(network_name))) {
 	if (link->Name[0] == '/') {
 	  strcpy(link->Name, network_name);
 	  pathcat(link->Name, "helios/");
