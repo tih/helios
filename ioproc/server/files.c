@@ -1142,6 +1142,7 @@ Conode *myco;
          { Request_Return(EC_Error + SS_IOProc + EG_InUse + EO_Name, 0L, 0L);
            return;
          }
+	get_file_info(local_name, &info);
 	get_objdb_info(IOname, &info);
 	if (info.DirEntry.Type == Type_Link) {
 	  /* XXX: temporary until proper directory walk */
