@@ -842,18 +842,33 @@ static void get_objdb_info(char *ioname, ObjInfo *info) {
 
 static void get_objdb_link(char *ioname, LinkInfo *link) {
   int len;
+  char *lp;
 
   if (!strncmp(ioname, "helios/", 7)) {
     if (!objdb_get_link(ioname, &link->Cap, &link->Name[0])) {
       len = readlink(local_name, &link->Name[0], IOCDataMax-1);
       link->Name[len] = '\0';
+      /* XXX: this bit is temporary until the proper directory walk */
+      if (strncmp(link.Name, network_name, strlen(network_name))) {
+	if (link->Name[0] == '/') {
+	  strcpy(link->Name, network_name);
+	  pathcat(link->Name, "helios/");
+	} else {
+	  strcpy(link->Name, network_name);
+	  pathcat(link->Name, ioname);
+	}
+	lp = strrchr(link->Name, '/') + 1;
+	len = readlink(local_name, lp, IOCDataMax - strlen(link->Name) - 1);
+	lp[len] = '\0';
+	flatten(link->Name);
+      }
+      /* XXX: temporary at least up to here */
       memset(&link->Cap, 0, 8);
       link->Cap.Access = AccMask_R;
       objdb_put_link(ioname, &link->Cap, &link->Name[0]);
     }
   } else {
     /* XXX: this bit is temporary until the proper directory walk */
-    char *lp;
     len = readlink(local_name, &link->Name[0], IOCDataMax-1);
     link->Name[len] = '\0';
     if (link->Name[0] == '/') {
@@ -867,6 +882,7 @@ static void get_objdb_link(char *ioname, LinkInfo *link) {
     len = readlink(local_name, lp, IOCDataMax - strlen(link->Name) - 1);
     lp[len] = '\0';
     flatten(link->Name);
+    /* XXX: temporary at least up to here */
     memset(&link->Cap, 0, 8);
   }
 }
