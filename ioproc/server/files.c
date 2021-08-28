@@ -851,18 +851,21 @@ static void get_objdb_link(char *ioname, LinkInfo *link) {
       objdb_put_link(ioname, &link->Cap, &link->Name[0]);
     }
   } else {
-    int len = readlink(local_name, &link->Name[0], IOCDataMax-1);
+    int absolute = 0;
+    char *lp;
+    int len;
+    len = readlink(local_name, &link->Name[0], IOCDataMax-1);
     link->Name[len] = '\0';
-    if (link->Name[0] != '/') {
-      char *lp;
-      strcpy(link->Name, network_name);
-      pathcat(link->Name, "files");
+    if (link->Name[0] == '/')
+      absolute = 1;
+    strcpy(link->Name, network_name);
+    pathcat(link->Name, "files/");
+    if (!absolute)
       pathcat(link->Name, local_name);
-      lp = strrchr(link->Name, '/');
-      lp++;
-      len = readlink(local_name, lp, IOCDataMax - strlen(link->Name) - 1);
-      lp[len] = '\0';
-    }
+    lp = strrchr(link->Name, '/');
+    lp++;
+    len = readlink(local_name, lp, IOCDataMax - strlen(link->Name) - 1);
+    lp[len] = '\0';
     memset(&link->Cap, 0, 8);
   }
 }
