@@ -46,6 +46,7 @@
 #endif
 
 #if MINIX
+#include <utime.h>
 #include <sys/statvfs.h>
 #endif
 
