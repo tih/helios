@@ -863,7 +863,8 @@ static void get_objdb_link(char *ioname, LinkInfo *link) {
     if (!absolute)
       pathcat(link->Name, local_name);
     lp = strrchr(link->Name, '/');
-    lp++;
+    if (!absolute)
+      lp++;
     len = readlink(local_name, lp, IOCDataMax - strlen(link->Name) - 1);
     lp[len] = '\0';
     memset(&link->Cap, 0, 8);
