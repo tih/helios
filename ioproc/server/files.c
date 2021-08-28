@@ -841,18 +841,19 @@ static void get_objdb_info(char *ioname, ObjInfo *info) {
 }
 
 static void get_objdb_link(char *ioname, LinkInfo *link) {
+  int len;
 
   if (!strncmp(ioname, "helios/", 7)) {
     if (!objdb_get_link(ioname, &link->Cap, &link->Name[0])) {
-      readlink(local_name, &link->Name[0], IOCDataMax-1);
-      link->Name[IOCDataMax-1] = '\0';
+      len = readlink(local_name, &link->Name[0], IOCDataMax-1);
+      link->Name[len] = '\0';
       memset(&link->Cap, 0, 8);
       link->Cap.Access = AccMask_R;
       objdb_put_link(ioname, &link->Cap, &link->Name[0]);
     }
   } else {
+    /* XXX: this bit is temporary until the proper directory walk */
     char *lp;
-    int len;
     len = readlink(local_name, &link->Name[0], IOCDataMax-1);
     link->Name[len] = '\0';
     if (link->Name[0] == '/') {
@@ -1022,6 +1023,7 @@ Conode *myco;
 	 mcb->Control[Pathname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Pathname_off]]) : "",
 	 mcb->Control[Nextname_off] >= 0 ? &(mcb->Data[(int)mcb->Control[Nextname_off]]) : "" ));
 
+ again:
   get_local_name();
 
 #if drives_are_special
@@ -1045,8 +1047,15 @@ Conode *myco;
 
   get_file_info(local_name, &info);
   get_objdb_info(IOname, &info);
-  if (info.DirEntry.Type == Type_Link)
+  if (info.DirEntry.Type == Type_Link) {
+    /* XXX: temporary until proper directory walk */
     get_objdb_link(IOname, &link);
+    if (!strncmp(link.Name, network_name, strlen(network_name)))
+      strcpy(IOname, &link.Name[strlen(network_name)+1]);
+    else
+      strcpy(IOname, link.Name);
+    goto again;
+  }
   objdb_lookup(IOname, NULL, NULL, NULL, &key);
   cap.Access = AccMask_R | AccMask_W;
   if (object_isadirectory(local_name))
