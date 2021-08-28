@@ -31,6 +31,7 @@ typedef  int            WORD    ;       /* a machine word, 32 bits      */
 typedef  unsigned int   UWORD   ;       /* a machine word, 32 bits      */
 typedef  WORD           INT     ;       /* a synonym                    */
 typedef  WORD           word    ;       /* another synonym              */
+typedef  UWORD          uword   ;       /* another                      */
 typedef  WORD           Offset  ;       /* and another                  */
 
 #else
@@ -657,9 +658,9 @@ typedef struct { word           Type;
 /* DateSet structure                                                    */
 /*----------------------------------------------------------------------*/
 typedef struct {
-        time_t          Creation;       /* three date stamps            */
-        time_t          Access;
-        time_t          Modified;
+        uword           Creation;       /* three date stamps            */
+        uword           Access;
+        uword           Modified;
 } DateSet;
 
 /*----------------------------------------------------------------------*/
@@ -673,9 +674,9 @@ typedef struct ObjInfo {
         DirEntry        DirEntry;       /* re-iteration of common info  */
         word            Account;        /* accounting identifier        */
         word            Size;           /* object size in bytes         */
-        time_t          Creation;       /* three date stamps            */
-        time_t          Access;
-        time_t          Modified;
+        uword           Creation;       /* three date stamps            */
+        uword           Access;
+        uword           Modified;
 } ObjInfo;
 
 /* if the object is a link, the linkinfo structure is used instead. */

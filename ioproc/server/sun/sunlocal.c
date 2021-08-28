@@ -2286,7 +2286,7 @@ WORD Multiwait()
 *** the place.
 **/
 
-WORD get_unix_time()
+UWORD get_unix_time()
 {
   return (time(NULL));
 }
@@ -2438,14 +2438,25 @@ WORD set_file_date(name,dateset)
      char *name;
      DateSet *dateset;
 {
-#if (SOLARIS || MINIX)
+#if SOLARIS
   struct utimbuf timestamps;
-  timestamps.actime = dateset->Access;
+  timestamps.actime = (dateset->Access == 0 ? dateset->Modified : dateset->Access);
   timestamps.modtime = dateset->Modified;
   return (utime (name,&timestamps) eq 0) ? TRUE : FALSE;
+#elif MINIX
+  time_t timestamps[2];
+  if (dateset->Access > 0) {
+	timestamps[0] = dateset->Access;
+  } else {
+	struct stat stbuf;
+	stat(name, &stbuf);
+	timestamps[0] = stbuf.st_atime;
+  }
+  timestamps[1] = dateset->Modified;
+  return (utime (name, &timestamps[0]) eq 0) ? TRUE : FALSE;
 #else
   time_t timestamps[2]; 
-  timestamps[0] = dateset->Access;
+  timestamps[0] = (dateset->Access == 0 ? dateset->Modified : dateset->Access);
   timestamps[1] = dateset->Modified;
   return (utime (name,timestamps) eq 0) ? TRUE : FALSE;
 #endif

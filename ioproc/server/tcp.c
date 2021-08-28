@@ -82,8 +82,8 @@ typedef struct SockEntry
 	bool		Oob;		/* out-of-band data flag */
 
 	/* time stuff */
-	time_t		creation;	/* creation date */
-	time_t		access;		/* access date */
+	uword		creation;	/* creation date */
+	uword		access;		/* access date */
 		
 	/* UNIX stuff */
 	int 		fd;		/* socket file descriptor */

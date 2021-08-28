@@ -1437,9 +1437,9 @@ Conode *myco;
       info->DirEntry.Matrix   = swap(DefDirMatrix);
       info->Size              = swap(0L);
       info->Account           = swap(0L);
-      info->Creation          = swap(0L);
-      info->Access            = swap(0L);
-      info->Modified          = swap(0L);
+      info->Creation          = swap(Startup_Time);
+      info->Access            = swap(Startup_Time);
+      info->Modified          = swap(Startup_Time);
       strcpy(&(info->DirEntry.Name[0]), "helios");
       Request_Return(ReplyOK, 0L, (word) sizeof(ObjInfo));
       return;
@@ -1457,9 +1457,9 @@ Conode *myco;
       info->DirEntry.Matrix   = swap(DefDirMatrix);
       info->Size              = swap(0L);
       info->Account           = swap(0L);
-      info->Creation          = swap(0L);
-      info->Access            = swap(0L);
-      info->Modified          = swap(0L);
+      info->Creation          = swap(Startup_Time);
+      info->Access            = swap(Startup_Time);
+      info->Modified          = swap(Startup_Time);
       info->DirEntry.Name[0]  = local_name[0];
       info->DirEntry.Name[1]  = '\0';
       Request_Return(ReplyOK, 0L, (word) sizeof(ObjInfo));
@@ -1634,7 +1634,7 @@ use(myco)
 
 void Drive_SetDate(myco)
 Conode *myco;
-{ DateSet *dateset = &(mcb->Control[SetDateDateSet_off]);
+{ DateSet *dateset = &mcb->Control[SetDateDateSet_off];
 
   Debug(Graphics_Flag,
 	("\nSETDATE:\nContext:  %s\nPathname: %s\nNext:     %s",
@@ -1644,8 +1644,11 @@ Conode *myco;
 
   get_local_name();
 
-  Debug(FileIO_Flag, ("SetDate request for %s:\nCreate: %s\nAccess: %s\nModif.: %s", local_name,
-		      ctime(&(dateset->Creation)), ctime(&(dateset->Access)), ctime(&(dateset->Modified)) ));
+  Debug(FileIO_Flag, ("SetDate request for %s (using %x and %x):",
+		      local_name, &mcb->Control, dateset ));
+
+  Debug(FileIO_Flag, ("Create: %x\nAccess: %x\nModif.: %x",
+		      dateset->Creation, dateset->Access, dateset->Modified ));
 
 #if drives_are_special
                             /* now check that it exists and that it is a file */

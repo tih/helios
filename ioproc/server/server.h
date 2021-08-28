@@ -117,7 +117,7 @@ Node        *Heliosnode;
 MCB         *mcb;
 word        CoCount=1L;             /* counter for coroutine id numbering */
 word        time_unit;
-time_t      Startup_Time;
+uword       Startup_Time;
 clock_t     Now, initial_stamp;
 char        network_name[IOCDataMax];
 char        IOname[IOCDataMax];
@@ -1218,7 +1218,7 @@ extern MCB          *mcb;
 extern Node         *Heliosnode;
 extern word         CoCount;
 extern word         time_unit;
-extern time_t       Startup_Time;
+extern uword        Startup_Time;
 extern clock_t      Now, initial_stamp;
 extern char         network_name[];
 extern char         IOname[];

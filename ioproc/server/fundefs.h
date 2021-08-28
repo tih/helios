@@ -128,7 +128,7 @@ PUBLIC  void fn( Select_handler,            (Conode *));
 PUBLIC word fn(  convert_name,    (void));
 PUBLIC word fn(  flatten,         (char *));
 PUBLIC word fn(  mystrcmp,        (char *, char *));
-PUBLIC word fn(  get_unix_time,   (void));
+PUBLIC uword fn( get_unix_time,   (void));
 PUBLIC void fn(  NewStream,       (word, word, word, VoidConFnPtr *));
 PUBLIC void fn(  AddAttribute,    (Attributes *, Attribute));
 PUBLIC void fn(  RemoveAttribute, (Attributes *, Attribute));
