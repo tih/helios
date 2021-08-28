@@ -1634,7 +1634,7 @@ use(myco)
 
 void Drive_SetDate(myco)
 Conode *myco;
-{ DateSet *dateset = &((mcb->Control)[SetDateDateSet_off]);
+{ DateSet *dateset = &(mcb->Control[SetDateDateSet_off]);
 
   Debug(Graphics_Flag,
 	("\nSETDATE:\nContext:  %s\nPathname: %s\nNext:     %s",
@@ -1645,7 +1645,7 @@ Conode *myco;
   get_local_name();
 
   Debug(FileIO_Flag, ("SetDate request for %s:\nCreate: %s\nAccess: %s\nModif.: %s", local_name,
-		      ctime(&dateset->Creation), ctime(&dateset->Access), ctime(&dateset->Modified) ));
+		      ctime(&(dateset->Creation)), ctime(&(dateset->Access)), ctime(&(dateset->Modified)) ));
 
 #if drives_are_special
                             /* now check that it exists and that it is a file */
